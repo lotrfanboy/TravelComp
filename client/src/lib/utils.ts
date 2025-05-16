@@ -89,19 +89,33 @@ export function getUserRoleDisplay(role: string): string {
 /**
  * Format a date for display
  */
-export function formatDate(date: Date | null): string {
+export function formatDate(date: Date | null | string): string {
   if (!date) return '';
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }).format(date);
+  
+  try {
+    // Converter para objeto Date se for string
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    // Verificar se a data é válida
+    if (isNaN(dateObj.getTime())) {
+      return '';
+    }
+    
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(dateObj);
+  } catch (error) {
+    console.error('Erro ao formatar data:', error);
+    return '';
+  }
 }
 
 /**
  * Format a date range for display
  */
-export function formatDateRange(startDate: Date | null, endDate: Date | null): string {
+export function formatDateRange(startDate: Date | string | null, endDate: Date | string | null): string {
   if (!startDate || !endDate) return '';
   return `${formatDate(startDate)} - ${formatDate(endDate)}`;
 }
@@ -109,12 +123,26 @@ export function formatDateRange(startDate: Date | null, endDate: Date | null): s
 /**
  * Get days until a date
  */
-export function getDaysUntil(date: Date | null): number {
+export function getDaysUntil(date: Date | string | null): number {
   if (!date) return 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const targetDate = new Date(date);
-  targetDate.setHours(0, 0, 0, 0);
   
-  return Math.max(0, Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Converter para objeto Date se for string
+    const targetDate = typeof date === 'string' ? new Date(date) : date;
+    
+    // Verificar se a data é válida
+    if (isNaN(targetDate.getTime())) {
+      return 0;
+    }
+    
+    targetDate.setHours(0, 0, 0, 0);
+    
+    return Math.max(0, Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+  } catch (error) {
+    console.error('Erro ao calcular dias até a data:', error);
+    return 0;
+  }
 }
