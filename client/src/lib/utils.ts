@@ -71,3 +71,50 @@ export function daysBetween(date1: Date, date2: Date): number {
   
   return Math.round(Math.abs((firstDate.getTime() - secondDate.getTime()) / oneDay));
 }
+
+/**
+ * Get a display name for a user role
+ */
+export function getUserRoleDisplay(role: string): string {
+  const roleDisplays: Record<string, string> = {
+    'tourist': 'Turista',
+    'business': 'Executivo',
+    'nomad': 'Nômade Digital',
+    'admin': 'Administrador',
+  };
+  
+  return roleDisplays[role.toLowerCase()] || role;
+}
+
+/**
+ * Format a date for display
+ */
+export function formatDate(date: Date | null): string {
+  if (!date) return '';
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(date);
+}
+
+/**
+ * Format a date range for display
+ */
+export function formatDateRange(startDate: Date | null, endDate: Date | null): string {
+  if (!startDate || !endDate) return '';
+  return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+}
+
+/**
+ * Get days until a date
+ */
+export function getDaysUntil(date: Date | null): number {
+  if (!date) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const targetDate = new Date(date);
+  targetDate.setHours(0, 0, 0, 0);
+  
+  return Math.max(0, Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+}

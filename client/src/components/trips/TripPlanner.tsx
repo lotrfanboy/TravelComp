@@ -459,41 +459,15 @@ export function TripPlanner() {
                 ]}
               />
               
-              {/* Gráfico de orçamento */}
+              {/* Gráfico de orçamento interativo com transições de cores */}
               <div className="mt-6">
-                <BudgetPieChart 
-                  data={[
-                    {
-                      name: 'Transporte',
-                      value: costSimulation.flightOptions[0].price,
-                      color: '#4C6FFF', // azul
-                      hoverColor: '#3355DD',
-                      category: 'transportation'
-                    },
-                    {
-                      name: 'Hospedagem',
-                      value: costSimulation.hotelOptions[0].totalPrice || 0,
-                      color: '#FF6B6B', // vermelho
-                      hoverColor: '#DD5555',
-                      category: 'accommodation'
-                    },
-                    {
-                      name: 'Alimentação',
-                      value: Math.round((costSimulation.totalEstimate * 0.15)),
-                      color: '#FFD166', // amarelo
-                      hoverColor: '#DDBB55',
-                      category: 'food'
-                    },
-                    {
-                      name: 'Atrações',
-                      value: Math.round((costSimulation.totalEstimate * 0.10)),
-                      color: '#06D6A0', // verde
-                      hoverColor: '#05BB8A',
-                      category: 'activities'
-                    }
-                  ]}
-                  totalBudget={formData.budget}
-                  currency="BRL"
+                <TripPriceSummary
+                  destination={formData.destination}
+                  country={formData.destinationCountry}
+                  startDate={formData.departureDate}
+                  endDate={formData.returnDate}
+                  budget={formData.budget}
+                  currency={costSimulation.currency || 'BRL'}
                 />
               </div>
             </>
