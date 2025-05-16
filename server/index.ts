@@ -1,9 +1,23 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { simulateTripCost } from "./trip-simulation";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
+
+// Rota adicional para simulação de custos de viagem
+app.post('/api/trip/cost-simulation', async (req, res) => {
+  try {
+    console.log('Simulando custos de viagem com dados:', req.body);
+    await simulateTripCost(req, res);
+  } catch (error) {
+    console.error('Erro ao simular custos da viagem:', error);
+    res.status(500).json({ 
+      error: 'Erro interno ao processar a simulação de custos.'
+    });
+  }
+});
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
