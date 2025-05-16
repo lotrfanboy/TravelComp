@@ -184,7 +184,7 @@ const SingleDestinationWizard: React.FC<SingleDestinationWizardProps> = ({
         body: JSON.stringify({
           origin: formData.origin || 'São Paulo',
           originCountry: 'Brasil',
-          destination: typeof formData.destination === 'object' ? formData.destination.city : formData.destination,
+          destination: typeof formData.destination === 'object' ? formData.destination.city : formData.destination || 'São Paulo',
           destinationCountry: typeof formData.destination === 'object' ? formData.destination.country : 'Brasil',
           departureDate: formData.startDate,
           returnDate: formData.endDate,
