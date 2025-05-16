@@ -649,18 +649,18 @@ export default function TripCreator() {
             
             <Button 
               onClick={handleSubmit} 
-              disabled={createTripMutation.isPending || destinations.length === 0}
+              disabled={tripMutation.isPending || destinations.length === 0}
               size="lg"
             >
-              {createTripMutation.isPending ? (
+              {tripMutation.isPending ? (
                 <span className="flex items-center">
                   <span className="animate-spin h-4 w-4 mr-2 border-2 border-b-transparent rounded-full"></span>
-                  {t('common.creating', 'Criando...')}
+                  {isEditMode ? 'Atualizando...' : t('common.creating', 'Criando...')}
                 </span>
               ) : (
                 <span className="flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2" />
-                  {t('tripCreator.startPlanning', 'Começar a Planejar')}
+                  {isEditMode ? 'Salvar Alterações' : t('tripCreator.startPlanning', 'Começar a Planejar')}
                 </span>
               )}
             </Button>

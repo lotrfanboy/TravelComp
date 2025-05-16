@@ -122,14 +122,14 @@ const TripCard: React.FC<TripCardProps> = ({ trip, roleColor, extraInfo = [] }) 
             size="sm"
             onClick={() => navigate(`/trips/${trip.id}`)}
           >
-            View Details
+            Ver Detalhes
           </Button>
           <Button 
             size="sm"
             className={getButtonColor(roleColor)}
             onClick={() => navigate(`/trips/${trip.id}/edit`)}
           >
-            Continue Planning
+            Editar Viagem
           </Button>
         </div>
       </div>
