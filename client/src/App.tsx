@@ -10,6 +10,7 @@ import HomePage from "@/pages/index";
 import Dashboard from "@/pages/dashboard";
 import Trips from "@/pages/trips";
 import TripCreator from "@/pages/trip-creator";
+import TripDetail from "@/pages/TripDetail";
 import Workspaces from "@/pages/workspaces";
 import Community from "@/pages/community";
 import Budget from "@/pages/budget";
@@ -64,6 +65,12 @@ function Router() {
       )} />
       <Route path="/trips/new" component={() => (
         <AuthProtectedRoute component={TripCreator} pageTitle="Nova Viagem" />
+      )} />
+      <Route path="/trips/:id" component={() => (
+        <AuthProtectedRoute component={TripDetail} pageTitle="Detalhes da Viagem" />
+      )} />
+      <Route path="/trips/:id/edit" component={() => (
+        <AuthProtectedRoute component={TripCreator} pageTitle="Editar Viagem" />
       )} />
       <Route path="/trip-creator" component={() => (
         <AuthProtectedRoute component={TripCreator} pageTitle="Planejar Viagem" />
