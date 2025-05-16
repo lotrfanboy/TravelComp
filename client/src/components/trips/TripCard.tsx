@@ -88,9 +88,9 @@ const TripCard: React.FC<TripCardProps> = ({ trip, roleColor, extraInfo = [] }) 
   const isUpcoming = daysUntil > 0;
   const status = isUpcoming 
     ? daysUntil <= 14 
-      ? `In ${daysUntil} days`
-      : `In ${Math.floor(daysUntil / 7)} weeks`
-    : 'Active';
+      ? `Em ${daysUntil} dias`
+      : `Em ${Math.floor(daysUntil / 7)} semanas`
+    : 'Ativa';
 
   return (
     <div className="flex rounded-lg border border-gray-200 overflow-hidden">

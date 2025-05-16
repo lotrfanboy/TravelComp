@@ -138,8 +138,8 @@ const Trips: React.FC = () => {
     <>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Trips</h1>
-          <p className="text-gray-500 mt-1">Manage all your travel plans in one place</p>
+          <h1 className="text-2xl font-bold text-gray-900">Minhas Viagens</h1>
+          <p className="text-gray-500 mt-1">Gerencie todos os seus planos de viagem em um só lugar</p>
         </div>
         <Button
           className={`mt-4 md:mt-0 ${
@@ -152,7 +152,7 @@ const Trips: React.FC = () => {
           onClick={handleCreateTrip}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Create New Trip
+          Nova Viagem
         </Button>
       </div>
 
@@ -162,38 +162,74 @@ const Trips: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <input
               type="text"
-              placeholder="Search trips by name or destination..."
+              placeholder="Buscar viagens por nome ou destino..."
               className="pl-10 pr-4 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <div className="flex gap-4">
-            <Button variant="outline" className="flex items-center">
-              <Calendar className="h-4 w-4 mr-2" />
-              Date
-            </Button>
-            <Button variant="outline" className="flex items-center">
-              <ListFilter className="h-4 w-4 mr-2" />
-              Filters
+            <Button 
+              variant={showAdvancedFilters ? "default" : "outline"} 
+              className="flex items-center"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              {showAdvancedFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
+              {Object.values(advancedFilters).some(v => v !== null) && (
+                <span className="ml-2 h-2 w-2 rounded-full bg-green-500"></span>
+              )}
             </Button>
           </div>
         </div>
       </div>
 
+      {showAdvancedFilters && (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+          <div className="lg:col-span-1">
+            <TripFilters onFilterChange={setAdvancedFilters} />
+          </div>
+          <div className="lg:col-span-3">
+            {Object.values(advancedFilters).some(v => v !== null) && (
+              <div className="bg-slate-50 p-4 rounded-lg mb-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-500">
+                    Filtros aplicados: {Object.values(advancedFilters).filter(v => v !== null).length}
+                  </p>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setAdvancedFilters({
+                      tripType: null,
+                      continent: null,
+                      dateRange: null,
+                      budgetRange: null,
+                      isMultiDestination: null
+                    })}
+                    className="h-8 text-xs"
+                  >
+                    Limpar todos
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="all" className="space-y-4" onValueChange={(value) => setFilterStatus(value as any)}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="all">
-            All ({tripCounts.all})
+            Todas ({tripCounts.all})
           </TabsTrigger>
           <TabsTrigger value="upcoming">
-            Upcoming ({tripCounts.upcoming})
+            Futuras ({tripCounts.upcoming})
           </TabsTrigger>
           <TabsTrigger value="active">
-            Active ({tripCounts.active})
+            Ativas ({tripCounts.active})
           </TabsTrigger>
           <TabsTrigger value="past">
-            Past ({tripCounts.past})
+            Passadas ({tripCounts.past})
           </TabsTrigger>
         </TabsList>
         
