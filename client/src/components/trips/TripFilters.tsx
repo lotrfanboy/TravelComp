@@ -16,9 +16,9 @@ import {
   Slider 
 } from '@/components/ui/slider';
 import { 
-  DateRangePicker, 
-  DateRange 
+  DateRangePicker
 } from '@/components/ui/date-range-picker';
+import { DateRange } from 'react-day-picker';
 import {
   Label
 } from '@/components/ui/label';
@@ -217,14 +217,14 @@ const TripFilters: React.FC<TripFiltersProps> = ({ onFilterChange, className }) 
           {/* Filtro de Período */}
           <div>
             <Label className="text-sm font-medium mb-1.5 block">Período da Viagem</Label>
-            <DateRangePicker
-              value={filters.dateRange || undefined}
-              onChange={(range) => handleFilterChange('dateRange', range)}
-              placeholder="Selecione um período"
-              className="w-full"
-              align="start"
-              locale="pt-BR"
-            />
+            <div className="w-full">
+              <DateRangePicker
+                value={filters.dateRange || undefined}
+                onChange={(range) => handleFilterChange('dateRange', range)}
+                className="w-full"
+                align="start"
+              />
+            </div>
           </div>
           
           {/* Filtro de Orçamento */}

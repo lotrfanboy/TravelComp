@@ -20,6 +20,14 @@ const Trips: React.FC = () => {
   const [showTripWizard, setShowTripWizard] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'upcoming' | 'past' | 'active'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState<TripFiltersType>({
+    tripType: null,
+    continent: null,
+    dateRange: null,
+    budgetRange: null,
+    isMultiDestination: null
+  });
 
   // Fetch trips
   const { data: trips, isLoading } = useQuery<Trip[]>({
@@ -52,10 +60,49 @@ const Trips: React.FC = () => {
         trip.country.toLowerCase().includes(query)
       );
     }
+
+    // Apply advanced filters
+    if (advancedFilters.tripType) {
+      filtered = filtered.filter(trip => trip.tripType === advancedFilters.tripType);
+    }
+    
+    if (advancedFilters.isMultiDestination !== null) {
+      filtered = filtered.filter(trip => Boolean(trip.isMultiDestination) === advancedFilters.isMultiDestination);
+    }
+    
+    if (advancedFilters.continent) {
+      filtered = filtered.filter(trip => {
+        const tripContinent = getContinent(trip.country);
+        return tripContinent === advancedFilters.continent;
+      });
+    }
+    
+    if (advancedFilters.dateRange && advancedFilters.dateRange.from && advancedFilters.dateRange.to) {
+      filtered = filtered.filter(trip => {
+        const tripStart = new Date(trip.startDate);
+        const tripEnd = new Date(trip.endDate);
+        const filterStart = advancedFilters.dateRange?.from as Date;
+        const filterEnd = advancedFilters.dateRange?.to as Date;
+        
+        return (
+          (tripStart >= filterStart && tripStart <= filterEnd) ||
+          (tripEnd >= filterStart && tripEnd <= filterEnd) ||
+          (tripStart <= filterStart && tripEnd >= filterEnd)
+        );
+      });
+    }
+    
+    if (advancedFilters.budgetRange && advancedFilters.budgetRange.length === 2) {
+      const [minBudget, maxBudget] = advancedFilters.budgetRange;
+      filtered = filtered.filter(trip => {
+        const tripBudget = trip.budget ? parseFloat(String(trip.budget)) : 0;
+        return tripBudget >= minBudget && tripBudget <= maxBudget;
+      });
+    }
     
     // Sort by start date (newest first)
     return filtered.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-  }, [trips, filterStatus, searchQuery]);
+  }, [trips, filterStatus, searchQuery, advancedFilters]);
 
   const roleColor = user?.role === UserRole.TOURIST
     ? 'tourist'
