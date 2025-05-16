@@ -1,0 +1,109 @@
+Please apply the following updates and improvements in order:
+
+1. Database & User Auth
+Connect the Node.js backend to Replit’s built-in database (replit.rawDB).
+
+Create a robust user registration and login system:
+
+Sign-up with email/password (hashed), email verification placeholder.
+
+Role assignment on signup: company, traveler, nomad.
+
+Login endpoint that returns a session token.
+
+Middleware to enforce protected routes and populate req.auth with { userId, role }.
+
+2. Manual Itinerary Builder Overhaul
+a. Intuitive Multi-Destination Flow
+Refactor the wizard to allow any number of stops in one itinerary.
+
+Display destinations in a vertical list you can drag-and-drop to reorder (use react-beautiful-dnd or similar).
+
+After reordering, auto-validate all dates: each stop’s start ≥ previous stop’s end and within the trip timeframe.
+
+b. Autocomplete Locations
+Replace manual inputs with a single “City, Country” autocomplete field.
+
+Integrate:
+
+RESTCountries API for country names & codes
+
+GeoDB Cities API for city lookup
+
+On selection, save { cityName, countryName, countryCode } in your database record.
+
+c. Interests & Accommodation
+Remove “accommodation preferences” from the Interests step (those belong in the Accommodation section).
+
+Keep interests like Culture, Adventure, Nightlife, etc.
+
+d. Booking.com Integration & Data Persistence
+Connect to Booking.com API (via RapidAPI or official affiliate API) to fetch hotels for each destination and date range.
+
+On the final wizard step, insert each chosen segment into Replit DB under the user’s itinerary:
+
+js
+Copiar
+Editar
+db.set(`itinerary:${itineraryId}`, JSON.stringify(itineraryObject));
+Create backend endpoints:
+
+POST /api/itineraries to save a new trip (with stops, interests).
+
+GET /api/itineraries/:id to fetch saved trips.
+
+e. Cost Calculation Engine
+Implement an algorithm that, given each leg’s transport options (from Rome2Rio) and chosen hotel (from Booking), calculates:
+
+Total transport cost
+
+Total lodging cost
+
+User-provided daily budget (food & activities) multiplied by trip length
+
+Expose this via GET /api/itineraries/:id/cost-summary.
+
+f. Interactive Summary Step
+After destinations are entered, build a “Summary” UI where users can:
+
+Select one transport option per leg
+
+Select one accommodation per stop
+
+View a side-by-side cost breakdown (transport vs lodging vs daily expenses)
+
+Finalize and save these choices into the itinerary record
+
+3. Budget Module for Nomads
+The current Budget step is non-functional. Research top features of nomad budgeting tools (e.g., TravelSpend, Trail Wallet):
+
+Multi-currency tracking with real-time FX rates
+
+Categorized expenses (food, accommodation, transport, entertainment)
+
+Alerts when spending exceeds daily limit
+
+Historical charts by country and category
+
+Document in-code (in comments or a README.md) the set of features you’ll implement.
+
+For now, scaffold a Budget step that:
+
+Lets nomads enter expenses per category and currency
+
+Converts to the itinerary’s base currency using a free FX API (e.g., exchangerate.host)
+
+Stores expenses in DB under itinerary:${id}:expenses
+
+📄 Deliverables & Next Steps Documentation
+At the end of this iteration, generate a NEXT_STEPS.md file that outlines:
+
+How to swap Replit DB calls for Supabase/Postgres (table schemas + client code changes)
+
+How to integrate Stripe billing for subscription tiers
+
+Where to plug in Twilio WhatsApp notifications for trip confirmations
+
+Future UI/UX improvements (e.g., map visualization, offline PWA support)
+
+Please implement these updates in the existing Replit project, commit changes, and note any questions or blockers in your log. Once done, let me know so we can proceed with the community, dashboards, and further scaling!

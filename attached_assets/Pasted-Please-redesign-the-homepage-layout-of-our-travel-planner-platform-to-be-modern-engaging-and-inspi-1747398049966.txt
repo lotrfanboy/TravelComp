@@ -1,0 +1,129 @@
+Please redesign the homepage layout of our travel planner platform to be modern, engaging, and inspirational, based on the following specifications. The current version feels outdated, and this new version should offer a seamless, mobile-first experience with clear CTAs and visually rich storytelling.
+
+🖌️ Design Direction & Visual Consistency
+Apply a unified and consistent color palette throughout the entire homepage, aligned with our brand (use accent colors like #88C2BF, #19B4B0, #82C889, and text #434342).
+
+Avoid inconsistent elements like white-border buttons, excessive spacing, or mismatched contrast.
+
+All sections must feel cohesive — buttons, cards, icons, and background colors should speak the same design language.
+
+1. 🌍 Full-Width Hero Carousel
+Implement a full-width, edge-to-edge carousel of 8 high-resolution (Full-HD) destination images (e.g. Paris, Bali, New York, Tokyo, Cape Town, Santorini, Machu Picchu, Sydney).
+
+Each slide should feature:
+
+A semi-transparent overlay panel (bottom or side).
+
+Destination name in large, bold font.
+
+A short, evocative tagline (e.g. “Discover the heart of ancient Rome” or “Sunset magic in Santorini”).
+
+A primary CTA button (“Explore Now”) anchoring to the itinerary builder.
+
+Transitions: Smooth fade or slide, auto every 5s, reset on interaction.
+
+2. 🧭 Universal Product Messaging
+Below the hero, display a unified value proposition headline:
+
+“For tourists, nomads, and corporate travelers alike—plan your perfect journey.”
+
+Add a subheadline:
+
+“Smart itineraries. Real-time updates. Community insights. All in one place.”
+
+Include a secondary CTA: “See How It Works” linking to an explanatory section or video.
+
+3. 💼 User-Type Specific Cards (New Section)
+Add a horizontal section (or a 3-column layout on desktop, stacked on mobile) with dedicated cards for each user profile:
+
+🧳 Travelers:
+Visual: airport, suitcase, map UI, or travel icons.
+
+Text: “Your personal travel assistant.”
+
+Subtext: “Create seamless itineraries, discover hidden gems, and travel stress-free.”
+
+🧮 Digital Nomads:
+Visual: laptop on beach/desk, finance dashboards, productivity UI (no people).
+
+Text: “Work anywhere, plan everything.”
+
+Subtext: “Keep track of tasks, finances, and plans in one place.”
+
+📊 Companies:
+Visual: business dashboard, analytics graphs, global team markers (abstract/AI images).
+
+Text: “Corporate travel made smarter.”
+
+Subtext: “Plan team trips, track costs, and measure impact.”
+
+Each card should be clickable and lead to a landing or filtered feature set.
+
+4. ⚙️ Redesigned "Powerful Features" Section
+Replace the old feature list with icon-based tiles. Four main features:
+
+Feature	Icon	Text
+🧠 Personalized Plans	AI icon	“AI-Powered Planning”
+🌐 Global Coverage	Globe icon	“Worldwide Info”
+⚡ Real-Time Updates	Lightning icon	“Instant Alerts”
+🤝 Easy Sharing	Share icon	“Share Instantly”
+
+Layout: 2x2 grid on desktop, stacked on mobile.
+
+Add colored background circles behind icons for contrast.
+
+Use hover lift effects and subtle shadows.
+
+5. 🗺️ Inspirational Destination Grid
+Insert a grid of 4–6 medium-sized image cards between the hero and features section, each linking to pre-built itineraries.
+
+Examples:
+
+“Hidden Gems of Lisbon”
+
+“Nomad-Friendly Cities”
+
+“Corporate Retreat Hotspots”
+
+“Digital Workspaces in Nature”
+
+Each image should have:
+
+An overlay title
+
+Smooth hover effect (zoom in or lift)
+
+Clickable interaction
+
+📐 Design Guidelines Summary
+Color Palette: Consistent across all sections. Primary accents: #88C2BF, #19B4B0, #82C889, #434342.
+
+Typography: Modern sans-serif (e.g. Inter, Poppins)
+
+Hero title: 48–64px
+
+Section headings: 24–32px
+
+Body text: 16px
+
+Spacing: Generous (32–48px padding between sections)
+
+Responsiveness:
+
+Mobile-first layout
+
+Touch-friendly buttons
+
+Collapsible carousels, stacked grids
+
+Animations:
+
+Smooth fades on carousel and sections
+
+Hover lift effects on cards
+
+Subtle parallax on hero (optional)
+
+✅ Final Note
+This homepage should invite users into a journey, whether they’re leisure travelers, digital nomads, or corporate teams. Use large imagery, clear CTAs, and purposeful UI elements to guide them toward planning their next trip.
+

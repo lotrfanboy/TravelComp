@@ -1,0 +1,49 @@
+1. Unificar a rota de criação de viagens
+
+No seu código, identifique todas as páginas ou componentes que permitem criar uma viagem. Normalmente deve existir um componente TripForm ou rota /trips/new.
+
+Garanta que o caminho /trips (ou o botão “Create New Trip”) sempre carregue o mesmo componente de criação de roteiro. Remova qualquer outro formulário desconectado.
+
+Verifique o arquivo de rotas (React Router ou Next.js) e aponte /trips e /trips/new para o mesmo componente de planner. Assim, não importa de onde o usuário acesse, é sempre a mesma interface.
+
+2. Persistência e visualização de viagens
+
+Na submissão do formulário de criação, confirme que você está chamando o endpoint certo (POST /api/trips) com userId vinculado ao req.auth.
+
+Após receber o tripId, navegue automaticamente para /trips/:tripId ou para a lista de viagens (/trips/list).
+
+No componente de listagem (/trips), filtre sempre pelo userId corrente e exiba os títulos e datas das viagens.
+
+Teste manual criando uma viagem e recarregando a lista para garantir que os dados realmente estão gravados e lidos do banco.
+
+3. Corrigir o login via Google
+
+Verifique seu callback de OAuth: após a resposta do Google, você precisa checar/gerar o token de sessão e armazená-lo em um cookie ou localStorage.
+
+Coloque logs no servidor em auth/google/callback para confirmar que está recebendo o profile.id e criando/recuperando o usuário.
+
+No frontend, confira se, após a autenticação, você está chamando a função que define auth.setUser(...) e redirecionando para /dashboard.
+
+Se estiver quebrando, inspecione o console de rede (Network) para ver o erro retornado na requisição de login.
+
+4. Ajustar padding dos botões
+
+No CSS/Tailwind, remova estilos inline conflitantes e use classes consistentes:
+
+Para botões principais: px-6 py-3 (padding horizontal maior) e rounded-lg.
+
+Certifique-se de que não haja p-0 ou !p-* sobrescrevendo.
+
+Nos componentes de botão, garanta que o mesmo componente <Button> seja usado em todas as páginas para manter a consistência.
+
+Resumo das ações
+
+Unificar /trips e /trips/new para o mesmo fluxo de criação.
+
+Validar gravação e leitura de viagens por userId.
+
+Depurar e corrigir callback do Google OAuth, garantir redirecionamento pós-login.
+
+Padronizar padding dos botões com Tailwind/CSS, usar classes px-6 py-3.
+
+Faça essas correções em sequência, testando cada parte isoladamente. Assim você volta a conseguir criar viagens, vê-las na lista e ter um login via Google funcional, tudo com botões corretamente espaçados.

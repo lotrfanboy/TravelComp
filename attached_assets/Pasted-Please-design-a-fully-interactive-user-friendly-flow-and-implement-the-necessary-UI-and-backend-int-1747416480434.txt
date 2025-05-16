@@ -1,0 +1,81 @@
+Please design a fully interactive, user-friendly flow and implement the necessary UI and backend integrations as described:
+
+1. User Flow & UI Requirements
+Origin & Destination Inputs
+
+Two autocomplete fields (“From” and “To”) that suggest cities + countries (using a public API like GeoDB Cities or RESTCountries).
+
+Display national flags or small icons next to each suggestion.
+
+Date Selection
+
+A date picker for departure and return dates, defaulting to today + 7 days.
+
+Validate return ≥ departure; show inline error if invalid.
+
+Budget Input
+
+A slider or numeric input for total budget (in user’s base currency).
+
+Show real-time formatted value (e.g. “R$ 5.000” or “$ 1,000”).
+
+Points of Interest
+
+Multi-select dropdown of categories: Culture, Nature, Nightlife, Food, Adventure.
+
+After selection, show dynamic image cards for top 5 attractions via an image API or static placeholders.
+
+Each card includes an image, title, and rating.
+
+Interactive Suggestions
+
+Based on origin/destination and dates, display 2–3 smart suggestions (e.g. best time to visit, top airline deals, local events).
+
+Show this in a sidebar or collapsible panel.
+
+“Calculate Trip” Button
+
+Replace any “Estimated Costs” label with a prominent button:
+
+html
+Copiar
+Editar
+<button class="btn-primary w-full py-3">Calcular Viagem</button>
+On click, trigger a call to the backend cost simulation API.
+
+2. Backend Integration
+Flight & Hotel Cost Simulation
+
+Create or extend POST /api/trip/cost-simulation:
+
+Accepts { origin, destination, departureDate, returnDate, budget }
+
+Calls external APIs:
+
+Flight prices (e.g., Skyscanner, Amadeus)
+
+Hotel rates (Booking.com or similar)
+
+Returns { flightOptions: [...], hotelOptions: [...], totalEstimate }.
+
+Points of Interest
+
+Fetch top attractions from a tourism API (e.g., TripAdvisor or Foursquare), include name, category, imageUrl.
+
+Data Persistence
+
+Save the trip details and cost simulation results under the authenticated user:
+
+js
+Copiar
+Editar
+db.set(`trip:${userId}:${tripId}`, JSON.stringify({ ...tripData, costEstimate }));
+3. Implementation Notes
+Single-Destination Only: For now, focus on one origin → one destination flow.
+
+Existing Codebase: Integrate into the current React/Node project structure. Reuse UI components, styles, and authentication context.
+
+Responsive & Accessible: Ensure all controls and cards work smoothly on mobile and desktop; use proper ARIA labels.
+
+Dynamic Imagery: Use full-HD or generated images for attractions and hero banners; apply consistent filters or overlays.
+

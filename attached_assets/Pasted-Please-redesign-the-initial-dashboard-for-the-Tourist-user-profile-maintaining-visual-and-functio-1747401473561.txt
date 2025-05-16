@@ -1,0 +1,113 @@
+Please redesign the initial dashboard for the "Tourist" user profile, maintaining visual and functional consistency with the rest of the app. The dashboard should feel intuitive, inspiring, and functional, allowing tourists to easily plan, manage, and visualize their trips.
+
+🎨 Visual Style Guidelines
+Color Palette:
+
+Primary accents: #88C2BF, #19B4B0, #82C889
+
+Text: #434342, backgrounds mostly white #FFFFFF
+
+Typography: Clean, modern sans-serif (Inter or Poppins)
+
+Layout: Generous padding (32–48px between sections), soft shadows, rounded-2xl corners
+
+Responsiveness: Mobile-first design with collapsible navigation, stacked sections, and touch-friendly buttons
+
+🧱 Layout Structure
+1. 📍 Fixed Top Navigation (Header)
+Logo + app name
+
+User profile icon (with dropdown: settings, logout)
+
+Notifications icon
+
+Mobile: hamburger menu for sidebar access
+
+2. 📑 Sidebar Navigation (Collapsible)
+Home
+
+My Trips
+
+Create Trip
+
+Community
+
+Preferences
+
+Logout
+
+3. 🧭 Main Dashboard Area
+Welcome message:
+“Hi, [User Name]! Ready for your next adventure?”
+
+Trip Overview Section:
+
+Display recent or upcoming trips as horizontal cards or carousel:
+
+Trip name
+
+Destinations
+
+Dates
+
+Quick access to itinerary
+
+Quick Action CTA:
+Prominent “+ Create New Trip” button
+
+Smart Suggestions (based on interests):
+
+Categories like “Cultural Escapes,” “Beach Getaways,” “Weekend Trips”
+
+Visual cards with images and CTA to start itinerary based on that theme
+
+Community Inspiration Block:
+
+Small horizontal carousel with:
+
+Destination image
+
+Community reviews or ratings
+
+Link to view public itineraries
+
+Budget Tracker (if enabled):
+
+Display budget vs actual spending for active trips
+
+⚙️ Footer Section
+Quick links: Terms, Privacy Policy, Help Center, Language switcher (optional)
+
+📌 Required Functionalities
+Section	Feature Description
+Trips	View and access saved trips
+Itineraries	View, edit, or duplicate travel plans
+AI Trip Generator	Quick access to create a trip with AI via LLM
+Budgeting	Travel cost estimates and real-time budget tracking
+Community	View and engage with shared itineraries, comments, ratings
+Smart Suggestions	Recommended destinations based on preferences/history
+Notifications	Alerts for bookings, AI suggestions, and community interactions
+
+🔌 Required Backend API Endpoints
+Ensure these backend routes or data are available:
+
+GET /user/profile – Logged-in user info
+
+GET /trips/user – User's saved/active trips
+
+GET /recommendations – Destination suggestions
+
+GET /community/highlights – Top-rated public itineraries or reviews
+
+GET /budget/user – User's trip budgeting info
+
+🧠 Future-Proofing Notes
+This dashboard is specific to the "Tourist" profile.
+
+Future dashboards will be customized for:
+
+Digital Nomads: budgeting, mobility tools, visa alerts
+
+Businesses: team planning, multi-user access, corporate itineraries, KPIs
+
+Maintain modular layout components for easy reuse and adaptation.
