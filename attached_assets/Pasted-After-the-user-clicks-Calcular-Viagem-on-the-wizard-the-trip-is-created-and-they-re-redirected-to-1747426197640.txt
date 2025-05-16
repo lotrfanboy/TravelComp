@@ -1,0 +1,87 @@
+After the user clicks “Calcular Viagem” on the wizard, the trip is created and they’re redirected to a Trip Detail view. Please implement the following UI and interactions:
+
+1. Page Layout
+Two-column responsive layout:
+
+Left column (30–40% width): Interactive trip summary
+
+Right column (60–70% width): Map view with POIs
+
+On mobile, stack columns vertically (summary first, then map).
+
+2. Left Column: Interactive Summary
+Trip Header
+
+Trip name, dates, number of travelers
+
+“Edit Trip” button linking back to the wizard in edit mode
+
+Destination Details
+
+Show origin → destination path
+
+Display the selected dates next to each (e.g. “São Paulo → Paris (05/06–12/06)”)
+
+Cost Breakdown
+
+Flight Options (list of cards):
+
+Airline logo, departure/arrival times, price
+
+“Select” button on each card
+
+Hotel Options (list of cards):
+
+Hotel name, star rating, nightly rate, image thumbnail
+
+“Select” button on each card
+
+Totals & Actions
+
+Show running total as the user selects flight + hotel
+
+Final “Confirm & Save” button (primary style)
+
+All lists should load from your backend cost-simulation endpoints. Show a loading indicator while fetching.
+
+3. Right Column: Map with Points of Interest
+Embed a map (Leaflet, Google Maps, or similar) centered on the destination.
+
+Plot markers for the top 5 POIs chosen earlier (with icons).
+
+Clicking a marker shows a small popup with the POI name and image.
+
+Below the map, optionally list the POIs with “View on Map” links.
+
+4. Data & Integration
+The detail page receives from backend:
+
+json
+Copiar
+Editar
+{
+  "trip": { /* trip data */ },
+  "flightOptions": [ /* ... */ ],
+  "hotelOptions": [ /* ... */ ],
+  "pointsOfInterest": [ /* name, coords, imageUrl */ ]
+}
+Use these arrays to render cards and map markers.
+
+5. Visual & Interaction Notes
+Consistent styling with your app’s palette and typography.
+
+Cards: rounded, shadowed, hover lift.
+
+Map and summary should remain in sync as user picks options.
+
+Ensure mobile responsiveness and smooth loading states.
+
+Let me know if you need example data structures or starter components!
+
+
+
+
+
+
+
+

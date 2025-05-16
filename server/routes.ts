@@ -21,6 +21,7 @@ import {
   checkAvailability 
 } from "./booking-services";
 import { simulateTripCost } from "./trip-simulation";
+import { getTripDetails, confirmTripSelections } from "./trip-details";
 import { 
   tripValidationSchema, 
   workspaceValidationSchema, 
@@ -1228,6 +1229,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: String(error) 
       });
     }
+  });
+  
+  // Endpoint para obter detalhes completos da viagem (incluindo opções de voo, hotel e pontos de interesse)
+  app.get('/api/trips/:id/detail', isAuthenticated, async (req, res) => {
+    await getTripDetails(req, res);
+  });
+  
+  // Endpoint para confirmar as seleções do usuário para uma viagem
+  app.post('/api/trips/:id/confirm', isAuthenticated, async (req, res) => {
+    await confirmTripSelections(req, res);
   });
   
   // Só precisamos do servidor HTTP no final
