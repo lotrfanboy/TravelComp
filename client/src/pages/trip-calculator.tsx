@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { TripService, invalidateQuery } from '@/services/api.service';
 import { Trip, SimulationResults, UpdateTripPayload } from '@/types/trip.types';
+import { SimpleMap } from '@/components/maps/SimpleMap';
 
 export default function TripCalculator() {
   const { t } = useTranslation();
@@ -117,7 +118,7 @@ export default function TripCalculator() {
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Orçamento</h3>
-                  <p className="text-base">{formatCurrency(parseFloat(trip.budget), trip.currency)}</p>
+                  <p className="text-base">{trip.budget ? formatCurrency(parseFloat(trip.budget), trip.currency || 'BRL') : 'Não definido'}</p>
                 </div>
               </div>
               
@@ -261,20 +262,11 @@ export default function TripCalculator() {
         </div>
         
         {/* Coluna da direita - Mapa */}
-        <div className="bg-accent rounded-lg overflow-hidden" style={{ height: '600px' }}>
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <h3 className="text-lg font-medium mb-2">Mapa de {trip.destination}</h3>
-              <p className="text-muted-foreground mb-4">
-                O mapa interativo será exibido aqui, mostrando a localização do destino, hotéis e atrações.
-              </p>
-              <div className="inline-block border border-dashed rounded p-3">
-                <p className="text-sm text-muted-foreground">
-                  Em implementação - Mapa interativo
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="rounded-lg overflow-hidden" style={{ height: '600px' }}>
+          <SimpleMap 
+            location={trip.destination}
+            height="600px"
+          />
         </div>
       </div>
       
