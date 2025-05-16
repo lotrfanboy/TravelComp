@@ -289,7 +289,9 @@ const TouristDashboard: React.FC = () => {
                 <div className="flex-1">
                   <p className="text-sm font-medium text-[#434342]/70">{t('dashboard.budgetStatus', 'Status do Orçamento')}</p>
                   {budgetLoading ? (
-                    <Skeleton className="h-6 w-full mt-1" />
+                    <div className="mt-1">
+                      <Skeleton className="h-6 w-full" />
+                    </div>
                   ) : budget ? (
                     <>
                       <p className="text-lg font-semibold text-[#434342]">
