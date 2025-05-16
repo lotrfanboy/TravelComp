@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
+import { useLocation, useParams, useRoute } from 'wouter';
 import { 
   Tabs, 
   TabsContent, 
@@ -57,8 +57,14 @@ export default function TripCreator() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
+  // Verificar se estamos no modo de edição de viagem existente
+  const [match, params] = useRoute<{ id: string }>('/trips/:id/edit');
+  const isEditMode = match && params?.id;
+  const tripId = isEditMode ? parseInt(params.id) : null;
+  
   // Estados
   const [activeTab, setActiveTab] = useState('single-destination');
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
