@@ -216,6 +216,12 @@ const SingleDestinationWizard: React.FC<SingleDestinationWizardProps> = ({
       
       // Armazenar a simulação para uso posterior
       setSimulationResult(result);
+      
+      // Enviar os dados para criar a viagem e redirecionar para a página de detalhes
+      onComplete({
+        ...formData,
+        simulationResult: result
+      });
     } catch (error) {
       console.error('Erro na simulação:', error);
       toast({
@@ -704,10 +710,19 @@ const SingleDestinationWizard: React.FC<SingleDestinationWizardProps> = ({
         
         {step === 5 && simulationResult && (
           <Button
-            onClick={() => onComplete({...formData, simulationResult})}
+            onClick={() => {
+              // No click do botão não precisamos chamar onComplete novamente,
+              // pois já foi chamado ao calcular a viagem
+              toast({
+                title: "Viagem criada com sucesso",
+                description: "Redirecionando para a página de detalhes...",
+                variant: "default"
+              });
+            }}
             className="ml-auto flex items-center"
+            disabled={true}
           >
-            Finalizar e Criar Viagem
+            Viagem Criada, Redirecionando...
           </Button>
         )}
       </CardFooter>
