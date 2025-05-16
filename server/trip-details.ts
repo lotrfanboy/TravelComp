@@ -21,18 +21,46 @@ export async function getTripDetails(req: Request, res: Response) {
     
     // Se a viagem já tem uma simulação salva, usamos ela
     if (trip.simulationResult) {
+      // Converter simulationResult para objeto se for string
+      const simulationData = typeof trip.simulationResult === 'string' 
+        ? JSON.parse(trip.simulationResult) 
+        : trip.simulationResult;
+      
+      // Marcar as opções que foram selecionadas pelo usuário
+      if (simulationData.flightOptions && simulationData.flightOptions.length > 0) {
+        simulationData.flightOptions = simulationData.flightOptions.map((flight: any) => ({
+          ...flight,
+          selected: flight.id === trip.selectedFlightId
+        }));
+      }
+      
+      if (simulationData.hotelOptions && simulationData.hotelOptions.length > 0) {
+        simulationData.hotelOptions = simulationData.hotelOptions.map((hotel: any) => ({
+          ...hotel,
+          selected: hotel.id === trip.selectedHotelId
+        }));
+      }
+      
       return res.json({
         trip,
-        ...(typeof trip.simulationResult === 'string' 
-          ? JSON.parse(trip.simulationResult) 
-          : trip.simulationResult)
+        ...simulationData
       });
     }
     
     // Caso contrário, geramos opções usando o simulador
     // Aqui usamos dados simulados para demonstração
-    const flightOptions = generateFlightOptions(trip.destination, trip.startDate, trip.endDate);
-    const hotelOptions = generateHotelOptions(trip.destination, trip.country, trip.startDate, trip.endDate);
+    const flightOptions = generateFlightOptions(
+      typeof trip.startDate === 'string' ? new Date(trip.startDate) : trip.startDate,
+      typeof trip.endDate === 'string' ? new Date(trip.endDate) : trip.endDate
+    );
+    
+    const hotelOptions = generateHotelOptions(
+      trip.destination, 
+      trip.country, 
+      typeof trip.startDate === 'string' ? new Date(trip.startDate) : trip.startDate,
+      typeof trip.endDate === 'string' ? new Date(trip.endDate) : trip.endDate
+    );
+    
     const pointsOfInterest = generatePointsOfInterest(trip.destination, trip.country);
     
     const response = {
@@ -73,13 +101,44 @@ export async function confirmTripSelections(req: Request, res: Response) {
     }
     
     // Atualizar a viagem com as seleções
-    const updatedTrip = await storage.updateTrip(tripId, {
+    const updateData = {
       selectedFlightId,
       selectedHotelId,
       status: 'confirmed'
-    });
+    };
     
-    return res.json(updatedTrip);
+    const updatedTrip = await storage.updateTrip(tripId, updateData);
+    
+    if (!updatedTrip) {
+      return res.status(500).json({ message: 'Erro ao atualizar a viagem' });
+    }
+    
+    // Carregar os dados atualizados da viagem com as seleções
+    const newTripData = await storage.getTrip(tripId);
+    
+    if (!newTripData) {
+      return res.status(500).json({ message: 'Erro ao carregar viagem atualizada' });
+    }
+    
+    // Extrair os dados da simulação para incluir nas opções selecionadas
+    let simulationData = null;
+    if (newTripData.simulationResult) {
+      simulationData = typeof newTripData.simulationResult === 'string'
+        ? JSON.parse(newTripData.simulationResult)
+        : newTripData.simulationResult;
+    }
+    
+    // Encontrar o voo e hotel selecionados para mostrar na resposta
+    const selectedFlight = simulationData?.flightOptions?.find((f: any) => f.id === selectedFlightId) || null;
+    const selectedHotel = simulationData?.hotelOptions?.find((h: any) => h.id === selectedHotelId) || null;
+    
+    return res.json({
+      ...newTripData,
+      selections: {
+        flight: selectedFlight,
+        hotel: selectedHotel
+      }
+    });
   } catch (error) {
     console.error('Erro ao confirmar seleções da viagem:', error);
     return res.status(500).json({ message: 'Erro ao processar a solicitação' });
@@ -87,7 +146,7 @@ export async function confirmTripSelections(req: Request, res: Response) {
 }
 
 // Funções auxiliares para gerar dados simulados
-function generateFlightOptions(destination: string, startDate: Date, endDate: Date) {
+function generateFlightOptions(startDate: Date, endDate: Date) {
   const airlines = [
     { name: 'LATAM', code: 'LA' },
     { name: 'GOL', code: 'G3' },
