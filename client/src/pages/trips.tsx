@@ -5,11 +5,14 @@ import { Trip, UserRole } from '@shared/schema';
 import { useAuth } from '@/hooks/useAuth';
 import TripCard from '@/components/trips/TripCard';
 import TripWizard from '@/components/trips/TripWizard';
+import TripFilters, { TripFilters as TripFiltersType } from '@/components/trips/TripFilters';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, ListFilter, Search, Calendar } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, ListFilter, Search, Calendar, Filter } from 'lucide-react';
+import { getContinent } from '@/lib/countryImages';
 
 const Trips: React.FC = () => {
   const [_, navigate] = useLocation();

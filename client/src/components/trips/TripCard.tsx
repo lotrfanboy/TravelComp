@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation } from 'wouter';
 import { Trip } from '@shared/schema';
 import { formatDateRange, getDaysUntil } from '@/lib/utils';
+import { getCountryImage, getContinent } from '@/lib/countryImages';
 import { Button } from '@/components/ui/button';
 
 interface TripCardProps {
@@ -28,6 +29,17 @@ const TripCard: React.FC<TripCardProps> = ({ trip, roleColor, extraInfo = [] }) 
       default:
         return 'bg-gray-50 text-gray-800';
     }
+  };
+  
+  // Obtém imagem do destino baseada no país
+  const getTripImage = () => {
+    if (trip.country) {
+      return getCountryImage(trip.country);
+    } else if (trip.destination) {
+      return getCountryImage(trip.destination);
+    }
+    // Imagem padrão caso não tenha país/destino
+    return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=800&q=80';
   };
 
   const getButtonColor = (role: string) => {
@@ -85,7 +97,7 @@ const TripCard: React.FC<TripCardProps> = ({ trip, roleColor, extraInfo = [] }) 
       {/* Trip Image */}
       <div 
         className="flex-shrink-0 w-32 bg-cover bg-center" 
-        style={{ backgroundImage: `url('${getDestinationImage(trip.destination)}')` }}
+        style={{ backgroundImage: `url('${getTripImage()}')` }}
       />
       
       {/* Trip Info */}
