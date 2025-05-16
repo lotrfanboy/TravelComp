@@ -686,22 +686,24 @@ const SingleDestinationWizard: React.FC<SingleDestinationWizardProps> = ({
           </Button>
         )}
         
-        <Button
-          onClick={calculateTripCost}
-          className="ml-auto flex items-center bg-[#19B4B0] hover:bg-[#0ea19d] text-white"
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Calculando e Criando Viagem...
-            </>
-          ) : (
-            <>
-              Calcular Viagem
-            </>
-          )}
-        </Button>
+        {step === 5 && (
+          <Button
+            onClick={calculateTripCost}
+            className="ml-auto flex items-center bg-[#19B4B0] hover:bg-[#0ea19d] text-white"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Calculando e Criando Viagem...
+              </>
+            ) : (
+              <>
+                Calcular Viagem
+              </>
+            )}
+          </Button>
+        )}
       </CardFooter>
     );
   };
