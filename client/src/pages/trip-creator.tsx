@@ -226,8 +226,8 @@ export default function TripCreator() {
       return;
     }
     
-    // Criar viagem
-    createTripMutation.mutate({
+    // Criar ou atualizar viagem
+    tripMutation.mutate({
       ...formData,
       isMultiDestination: activeTab === 'multi-destination',
       // Se for multi-destino, usar o primeiro destino como principal
@@ -264,9 +264,17 @@ export default function TripCreator() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">{t('tripCreator.title', 'Criar Nova Viagem')}</h1>
+          <h1 className="text-3xl font-bold">
+            {isEditMode 
+              ? 'Editar Viagem' 
+              : t('tripCreator.title', 'Criar Nova Viagem')
+            }
+          </h1>
           <p className="text-muted-foreground">
-            {t('tripCreator.subtitle', 'Planeje sua próxima aventura, defina destinos e organize seu roteiro')}
+            {isEditMode
+              ? 'Atualize os detalhes da sua viagem e salve as alterações'
+              : t('tripCreator.subtitle', 'Planeje sua próxima aventura, defina destinos e organize seu roteiro')
+            }
           </p>
         </div>
         
@@ -469,7 +477,7 @@ export default function TripCreator() {
                 </Button>
                 <Button 
                   type="button" 
-                  disabled={createTripMutation.isPending || !formData.destination || !formData.country || !formData.startDate || !formData.endDate}
+                  disabled={tripMutation.isPending || !formData.destination || !formData.country || !formData.startDate || !formData.endDate}
                   onClick={(e) => {
                     e.preventDefault();
                     setShowPriceSummary(true);
@@ -478,14 +486,14 @@ export default function TripCreator() {
                 >
                   {t('tripCreator.showPrices', 'Ver custos estimados')}
                 </Button>
-                <Button type="submit" disabled={createTripMutation.isPending}>
-                  {createTripMutation.isPending ? (
+                <Button type="submit" disabled={tripMutation.isPending}>
+                  {tripMutation.isPending ? (
                     <span className="flex items-center">
                       <span className="animate-spin h-4 w-4 mr-2 border-2 border-b-transparent rounded-full"></span>
-                      {t('common.creating', 'Criando...')}
+                      {isEditMode ? 'Atualizando...' : t('common.creating', 'Criando...')}
                     </span>
                   ) : (
-                    t('tripCreator.createTrip', 'Criar Viagem')
+                    isEditMode ? 'Salvar Alterações' : t('tripCreator.createTrip', 'Criar Viagem')
                   )}
                 </Button>
               </CardFooter>
