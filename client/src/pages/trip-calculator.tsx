@@ -1,14 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useParams, useRoute } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/utils';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
+import { TripService, invalidateQuery } from '@/services/api.service';
+
+// Interface para a viagem
+interface Trip {
+  id: number;
+  name: string;
+  userId: string;
+  origin: string;
+  destination: string;
+  country: string;
+  startDate: string;
+  endDate: string;
+  budget: string | null;
+  currency: string | null;
+  travelers: number;
+  status: string | null;
+  simulationResult: SimulationResults | null;
+  selectedFlightId: string | null;
+  selectedHotelId: string | null;
+  isMultiDestination: boolean | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
 
 // Interface para os resultados da simulação
 interface SimulationResults {
@@ -58,16 +81,38 @@ export default function TripCalculator() {
   const [selectedFlight, setSelectedFlight] = useState<string | null>(null);
   const [selectedHotel, setSelectedHotel] = useState<string | null>(null);
   
-  // Buscar dados da viagem
+  // Mutação para atualizar a viagem com as seleções
+  const { mutate: updateTripSelections, isPending: isUpdating } = useMutation({
+    mutationFn: async (data: { selectedFlightId: string; selectedHotelId: string }) => {
+      if (!tripId) throw new Error('ID da viagem não encontrado');
+      return TripService.updateTrip(tripId, data);
+    },
+    onSuccess: () => {
+      // Invalidar cache para atualizar os dados
+      invalidateQuery([`/api/trips/${tripId}`]);
+      toast({
+        title: "Seleções confirmadas",
+        description: "Suas seleções de voo e hotel foram confirmadas.",
+        variant: "default"
+      });
+      // Redirecionar para detalhes da viagem
+      navigate(`/trips/${tripId}`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao confirmar seleções",
+        description: error.message || "Ocorreu um erro ao salvar suas seleções.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Buscar dados da viagem usando o serviço centralizado
   const { data: trip, isLoading: isLoadingTrip } = useQuery({
     queryKey: [`/api/trips/${tripId}`],
     queryFn: async () => {
       if (!tripId) return null;
-      const response = await fetch(`/api/trips/${tripId}`);
-      if (!response.ok) {
-        throw new Error('Falha ao carregar dados da viagem');
-      }
-      return response.json();
+      return TripService.getTrip(tripId);
     },
     enabled: !!tripId,
   });
@@ -299,7 +344,7 @@ export default function TripCalculator() {
         </Button>
         <Button 
           onClick={() => {
-            // Confirmação das seleções
+            // Validação das seleções
             if (!selectedFlight || !selectedHotel) {
               toast({
                 title: "Selecione as opções",
@@ -309,17 +354,22 @@ export default function TripCalculator() {
               return;
             }
             
-            toast({
-              title: "Seleções confirmadas",
-              description: "Suas seleções de voo e hotel foram confirmadas.",
-              variant: "default"
+            // Atualizar a viagem com as seleções
+            updateTripSelections({
+              selectedFlightId: selectedFlight,
+              selectedHotelId: selectedHotel
             });
-            
-            // Redirecionar para detalhes da viagem
-            navigate(`/trips/${tripId}`);
           }}
+          disabled={isUpdating}
         >
-          Confirmar Seleções
+          {isUpdating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Salvando...
+            </>
+          ) : (
+            'Confirmar Seleções'
+          )}
         </Button>
       </div>
     </div>
