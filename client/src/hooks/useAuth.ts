@@ -1,150 +1,74 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { toast } from "@/hooks/use-toast";
-import { useTranslation } from "react-i18next";
+/**
+ * Hook para gerenciar autenticação e acesso ao usuário atual
+ */
+import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
+import { useEffect } from 'react';
 
-interface User {
+// Tipos
+export interface User {
   id: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
-  profileImageUrl?: string;
+  firstName: string | null;
+  lastName: string | null;
+  profileImageUrl: string | null;
   role: string;
-  preferences?: any; // Support for user preferences 
+  organizationId: number | null;
+  preferences: any | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-interface RegisterData extends LoginCredentials {
-  firstName?: string;
-  lastName?: string;
-  profileType?: string; // Tipo de perfil do usuário (tourist, nomad, business)
-}
-
+/**
+ * Hook para gerenciar autenticação e acesso ao usuário atual
+ */
 export function useAuth() {
-  const queryClient = useQueryClient();
-  const { t } = useTranslation();
-
-  // Get current user
-  const { data: user, isLoading } = useQuery<User | null>({
-    queryKey: ["/api/auth/user"],
+  const { data: user, isLoading, error, refetch } = useQuery<User>({
+    queryKey: ['/api/auth/user'],
     retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 
-  // Login mutation
-  const login = useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
-      const response = await apiRequest({
-        url: "/api/login",
-        method: "POST",
-        body: JSON.stringify(credentials),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      // Invalida a consulta de usuário para obter os dados atualizados
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      
-      toast({
-        title: t('auth.loginSuccess', 'Login realizado com sucesso'),
-        description: t('auth.welcomeBack', 'Bem-vindo de volta!'),
-      });
-      
-      // Redireciona para uma página intermediária que fará o redirecionamento
-      // para o dashboard apropriado após carregar os dados do usuário
-      window.location.href = "/dashboard-router";
-    },
-    onError: (error: any) => {
-      toast({
-        title: t('auth.loginFailed', 'Falha no login'),
-        description: error.message || t('auth.checkCredentials', 'Verifique suas credenciais e tente novamente'),
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Register mutation
-  const register = useMutation({
-    mutationFn: async (data: RegisterData) => {
-      const response = await apiRequest({
-        url: "/api/register",
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      
-      // Verificar se o auto-login foi bem-sucedido
-      if (data.autoLogin) {
-        toast({
-          title: t('auth.autoLoginSuccess', 'Login automático realizado'),
-          description: t('auth.redirectingToDashboard', 'Você está sendo redirecionado para o painel'),
-        });
-      } else {
-        toast({
-          title: t('auth.registrationComplete', 'Registro concluído'),
-          description: t('auth.accountCreated', 'Sua conta foi criada com sucesso'),
-        });
-      }
-    },
-    onError: (error: any) => {
-      toast({
-        title: t('auth.registerFailed', 'Falha no registro'),
-        description: error.message || t('auth.checkInfo', 'Verifique suas informações e tente novamente'),
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Logout mutation
-  const logout = useMutation({
-    mutationFn: async () => {
-      // Antes de fazer logout, já invalidamos a query para evitar que o dashboard seja exibido
-      queryClient.setQueryData(["/api/auth/user"], null);
-      
-      const response = await apiRequest({
-        url: "/api/logout",
-        method: "GET",
-      });
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      toast({
-        title: t('auth.sessionEnded', 'Sessão encerrada'),
-        description: t('auth.logoutSuccess', 'Você foi desconectado com sucesso'),
-      });
-      
-      // Redirecionar imediatamente para a homepage
-      window.location.href = "/";
-    },
-    onError: () => {
-      toast({
-        title: t('auth.logoutFailed', 'Falha ao desconectar'),
-        description: t('auth.logoutError', 'Ocorreu um erro ao encerrar sua sessão'),
-        variant: "destructive",
-      });
-    },
-  });
+  const isAuthenticated = !!user;
 
   return {
     user,
-    isAuthenticated: !!user,
     isLoading,
-    needsOnboarding: !!user && (!user.role || user.role === ''),
-    login,
-    register,
-    logout,
+    isAuthenticated,
+    error,
+    refetch,
+  };
+}
+
+/**
+ * Hook para proteger rotas autenticadas
+ * @param redirectTo Caminho para redirecionar se não autenticado
+ */
+export function useRequireAuth(redirectTo: string = '/auth') {
+  const { user, isLoading } = useAuth();
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate(redirectTo);
+    }
+  }, [user, isLoading, navigate, redirectTo]);
+
+  return { user, isLoading };
+}
+
+/**
+ * Hook para verificar permissões de usuário 
+ * @param requiredRole Papel requerido (opcional)
+ */
+export function usePermissions(requiredRole?: string) {
+  const { user, isLoading } = useAuth();
+  
+  const hasRequiredRole = !requiredRole || (user?.role === requiredRole);
+  
+  return {
+    isAuthorized: !!user && hasRequiredRole,
+    isLoading,
+    userRole: user?.role,
   };
 }

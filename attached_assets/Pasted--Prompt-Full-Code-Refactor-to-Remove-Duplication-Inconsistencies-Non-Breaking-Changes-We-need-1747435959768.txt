@@ -1,0 +1,65 @@
+✨ Prompt: Full-Code Refactor to Remove Duplication & Inconsistencies (Non-Breaking Changes)
+
+We need a comprehensive, non-breaking refactor of our entire codebase to improve maintainability, remove duplication, and enforce consistency—while preserving all existing functionality and behavior. Please apply the following across all files:
+
+1. Eliminate Duplicated Logic
+Identify functions, hooks, or utilities that appear multiple times (e.g. data‐fetching, date validation, API calls).
+
+Extract these into shared modules under a new /utils or /services folder.
+
+Replace all in-place duplicates with imports from the shared module.
+
+2. Unify Component Patterns
+Standardize all React components to consistent patterns:
+
+Use functional components with hooks.
+
+Ensure props and state are typed (TypeScript) or validated (PropTypes).
+
+Consolidate similar UI patterns (cards, buttons, forms) into reusable components under /components.
+
+3. Consistent Styling
+Migrate any inline or ad-hoc CSS into your chosen styling system (Tailwind or CSS modules).
+
+Remove any conflicting or duplicate style rules.
+
+Ensure all spacing, color, and typography follow the design tokens (e.g. palette #88C2BF, #19B4B0, #82C889, text #434342).
+
+4. API & Data Layer Cleanup
+Centralize all API interaction logic into a single api/ service.
+
+Remove any direct fetch or axios calls scattered in components; use the unified API functions.
+
+Ensure error handling and loading states are handled consistently.
+
+5. Routing & Navigation
+Verify all route definitions are in one place (e.g. routes.js or AppRouter.jsx).
+
+Remove any orphaned or duplicate routes.
+
+Ensure route guards and auth checks are centralized.
+
+6. Remove Dead Code & Unused Imports
+Identify and delete any unused files, functions, variables, and imports.
+
+Ensure tree-shaking compatibility for production builds.
+
+7. Maintain Tests & Comments
+Preserve all existing unit/integration tests; update them only if refactored code breaks their patterns, but aim to keep test coverage unchanged.
+
+Keep or update comments/docblocks to match refactored code.
+
+8. Non-Breaking Assurance
+After each major change, run the full test suite and manual smoke tests:
+
+Trip creation flow
+
+Login/logout (email + Google)
+
+Dashboard listing and filters
+
+Cost simulation and detail page with map
+
+Confirm all flows work exactly as before.
+
+Please perform this refactor in small, logical commits, labeling each commit with the area refactored (e.g. “refactor: extract API calls to api/service.js”). Let me know if any piece of functionality appears ambiguous or requires clarification during refactoring.
