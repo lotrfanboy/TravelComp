@@ -11,8 +11,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from '@/components/ui/select';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Plus, ListFilter, Search, Calendar, Filter } from 'lucide-react';
 import { getContinent } from '@/lib/countryImages';
+import { continents, tripTypes, tripTypeLabels } from '@/components/trips/TripFilters';
 
 const Trips: React.FC = () => {
   const [_, navigate] = useLocation();
@@ -156,8 +171,10 @@ const Trips: React.FC = () => {
         </Button>
       </div>
 
+      {/* Barra de busca e filtros */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          {/* Busca */}
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <input
@@ -168,54 +185,144 @@ const Trips: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex gap-4">
+          
+          {/* Botão de limpar filtros */}
+          {Object.values(advancedFilters).some(v => v !== null) && (
             <Button 
-              variant={showAdvancedFilters ? "default" : "outline"} 
-              className="flex items-center"
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              variant="outline" 
+              size="sm"
+              onClick={() => setAdvancedFilters({
+                tripType: null,
+                continent: null,
+                dateRange: null,
+                budgetRange: null,
+                isMultiDestination: null
+              })}
+              className="md:w-auto w-full"
             >
-              <Filter className="h-4 w-4 mr-2" />
-              {showAdvancedFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
-              {Object.values(advancedFilters).some(v => v !== null) && (
-                <span className="ml-2 h-2 w-2 rounded-full bg-green-500"></span>
-              )}
+              Limpar Filtros
             </Button>
+          )}
+        </div>
+        
+        {/* Filtros horizontais */}
+        <div className="flex flex-wrap gap-3">
+          {/* Tipo de Viagem */}
+          <div className="w-full sm:w-auto flex-grow md:flex-grow-0">
+            <div className="text-xs font-medium mb-1 text-gray-500">Tipo de Viagem</div>
+            <select
+              className="w-full h-9 rounded-md border border-gray-300 focus:outline-none px-3 text-sm"
+              value={advancedFilters.tripType || "Todos"}
+              onChange={(e) => {
+                const value = e.target.value;
+                setAdvancedFilters({
+                  ...advancedFilters,
+                  tripType: value === "Todos" ? null : value
+                });
+              }}
+            >
+              {tripTypes.map((type) => (
+                <option key={type} value={type}>
+                  {tripTypeLabels[type]}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Continente */}
+          <div className="w-full sm:w-auto flex-grow md:flex-grow-0">
+            <div className="text-xs font-medium mb-1 text-gray-500">Continente</div>
+            <select
+              className="w-full h-9 rounded-md border border-gray-300 focus:outline-none px-3 text-sm"
+              value={advancedFilters.continent || "Todos"}
+              onChange={(e) => {
+                const value = e.target.value;
+                setAdvancedFilters({
+                  ...advancedFilters,
+                  continent: value === "Todos" ? null : value
+                });
+              }}
+            >
+              {continents.map((continent) => (
+                <option key={continent} value={continent}>
+                  {continent}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Destinos */}
+          <div className="w-full sm:w-auto flex-grow md:flex-grow-0">
+            <div className="text-xs font-medium mb-1 text-gray-500">Destinos</div>
+            <select
+              className="w-full h-9 rounded-md border border-gray-300 focus:outline-none px-3 text-sm"
+              value={advancedFilters.isMultiDestination === null 
+                ? "Todos" 
+                : advancedFilters.isMultiDestination 
+                  ? "multi" 
+                  : "single"
+              }
+              onChange={(e) => {
+                const value = e.target.value;
+                let isMulti = null;
+                if (value === "multi") isMulti = true;
+                if (value === "single") isMulti = false;
+                setAdvancedFilters({
+                  ...advancedFilters,
+                  isMultiDestination: isMulti
+                });
+              }}
+            >
+              <option value="Todos">Todos</option>
+              <option value="single">Destino Único</option>
+              <option value="multi">Multi-Destino</option>
+            </select>
+          </div>
+          
+          {/* Orçamento */}
+          <div className="w-full sm:w-auto flex-grow md:flex-grow-0">
+            <div className="text-xs font-medium mb-1 text-gray-500">Orçamento</div>
+            <select
+              className="w-full h-9 rounded-md border border-gray-300 focus:outline-none px-3 text-sm"
+              value={advancedFilters.budgetRange ? "custom" : "all"}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "all") {
+                  setAdvancedFilters({
+                    ...advancedFilters,
+                    budgetRange: null
+                  });
+                } else if (value === "low") {
+                  setAdvancedFilters({
+                    ...advancedFilters,
+                    budgetRange: [0, 2000]
+                  });
+                } else if (value === "medium") {
+                  setAdvancedFilters({
+                    ...advancedFilters,
+                    budgetRange: [2000, 5000]
+                  });
+                } else if (value === "high") {
+                  setAdvancedFilters({
+                    ...advancedFilters,
+                    budgetRange: [5000, 10000]
+                  });
+                }
+              }}
+            >
+              <option value="all">Qualquer orçamento</option>
+              <option value="low">Até R$ 2.000</option>
+              <option value="medium">R$ 2.000 - R$ 5.000</option>
+              <option value="high">R$ 5.000+</option>
+              {advancedFilters.budgetRange && 
+                <option value="custom">
+                  R$ {advancedFilters.budgetRange[0]} - R$ {advancedFilters.budgetRange[1]}
+                </option>
+              }
+            </select>
           </div>
         </div>
       </div>
-
-      {showAdvancedFilters && (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-          <div className="lg:col-span-1">
-            <TripFilters onFilterChange={setAdvancedFilters} />
-          </div>
-          <div className="lg:col-span-3">
-            {Object.values(advancedFilters).some(v => v !== null) && (
-              <div className="bg-slate-50 p-4 rounded-lg mb-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-500">
-                    Filtros aplicados: {Object.values(advancedFilters).filter(v => v !== null).length}
-                  </p>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setAdvancedFilters({
-                      tripType: null,
-                      continent: null,
-                      dateRange: null,
-                      budgetRange: null,
-                      isMultiDestination: null
-                    })}
-                    className="h-8 text-xs"
-                  >
-                    Limpar todos
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       <Tabs defaultValue="all" className="space-y-4" onValueChange={(value) => setFilterStatus(value as any)}>
         <TabsList className="grid w-full grid-cols-4">
