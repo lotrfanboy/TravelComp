@@ -20,11 +20,19 @@ const VisaCard: React.FC<VisaCardProps> = ({ visaInfo }) => {
       <div className="px-5 py-4 bg-emerald-500 bg-opacity-10">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <img 
-              src={`https://flagcdn.com/48x36/${visaInfo.countryCode.toLowerCase()}.png`}
-              alt={`${visaInfo.country} flag`} 
-              className="w-8 h-8 rounded-full object-cover" 
-            />
+            {visaInfo.countryCode ? (
+              <img 
+                src={`https://flagcdn.com/48x36/${visaInfo.countryCode.toLowerCase()}.png`}
+                alt={`${visaInfo.country} flag`} 
+                className="w-8 h-8 rounded-full object-cover" 
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <span className="text-xs text-gray-500">
+                  {visaInfo.country?.charAt(0) || '?'}
+                </span>
+              </div>
+            )}
             <h4 className="ml-3 text-lg font-semibold text-gray-900">{visaInfo.country}</h4>
           </div>
           <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 font-medium">
