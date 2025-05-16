@@ -201,25 +201,22 @@ const SingleDestinationWizard: React.FC<SingleDestinationWizardProps> = ({
       console.log("Resultado da simulação:", result);
       setSimulationResult(result);
       
-      // Se a simulação foi bem-sucedida, preparamos os dados para a criação da viagem
-      // e avançamos para a etapa final
-      setStep(5);
+      // Não avançamos para etapa 5, vamos diretamente enviar os dados
+      // para criar a viagem e redirecionar para a página de detalhes
       
-      // Definir o valor do orçamento com base na simulação
+      // Atualizar o valor do orçamento com base na simulação para salvar
+      let updatedFormData = {...formData};
       if (result && result.totalEstimate) {
         const newBudgetValue = Math.ceil(result.totalEstimate * 1.1); // 10% acima da estimativa
-        setFormData(prev => ({
-          ...prev,
+        updatedFormData = {
+          ...updatedFormData,
           budgetValue: newBudgetValue
-        }));
+        };
       }
-      
-      // Armazenar a simulação para uso posterior
-      setSimulationResult(result);
       
       // Enviar os dados para criar a viagem e redirecionar para a página de detalhes
       onComplete({
-        ...formData,
+        ...updatedFormData,
         simulationResult: result
       });
     } catch (error) {
@@ -689,42 +686,22 @@ const SingleDestinationWizard: React.FC<SingleDestinationWizardProps> = ({
           </Button>
         )}
         
-        {step === 5 && !simulationResult && (
-          <Button
-            onClick={calculateTripCost}
-            className="ml-auto flex items-center bg-[#19B4B0] hover:bg-[#0ea19d] text-white"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Calculando...
-              </>
-            ) : (
-              <>
-                Calcular Viagem
-              </>
-            )}
-          </Button>
-        )}
-        
-        {step === 5 && simulationResult && (
-          <Button
-            onClick={() => {
-              // No click do botão não precisamos chamar onComplete novamente,
-              // pois já foi chamado ao calcular a viagem
-              toast({
-                title: "Viagem criada com sucesso",
-                description: "Redirecionando para a página de detalhes...",
-                variant: "default"
-              });
-            }}
-            className="ml-auto flex items-center"
-            disabled={true}
-          >
-            Viagem Criada, Redirecionando...
-          </Button>
-        )}
+        <Button
+          onClick={calculateTripCost}
+          className="ml-auto flex items-center bg-[#19B4B0] hover:bg-[#0ea19d] text-white"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Calculando e Criando Viagem...
+            </>
+          ) : (
+            <>
+              Calcular Viagem
+            </>
+          )}
+        </Button>
       </CardFooter>
     );
   };
