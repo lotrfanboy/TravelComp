@@ -48,6 +48,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { MultiDestinationBuilder } from '@/components/trips/MultiDestinationBuilder';
 import { DestinationAutocomplete } from '@/components/trips/DestinationAutocomplete';
 import { TripPriceSummary } from '@/components/trips/TripPriceSummary';
+import SingleDestinationWizard from '@/components/trips/SingleDestinationWizard';
 import { formatDate } from '@/lib/utils';
 
 export default function TripCreator() {
@@ -63,7 +64,7 @@ export default function TripCreator() {
   const tripId = isEditMode ? parseInt(params.id) : null;
   
   // Estados
-  const [activeTab, setActiveTab] = useState('single-destination');
+  const [activeTab, setActiveTab] = useState('single-destination-wizard');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -81,6 +82,7 @@ export default function TripCreator() {
     isMultiDestination: false,
   });
   
+  const [wizardData, setWizardData] = useState<any>(null);
   const [destinations, setDestinations] = useState<any[]>([]);
   const [showPriceSummary, setShowPriceSummary] = useState(false);
   
@@ -283,16 +285,73 @@ export default function TripCreator() {
         </Button>
       </div>
       
-      <Tabs defaultValue="single-destination" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="single-destination-wizard" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="single-destination-wizard">
+            <div className="flex flex-col items-center sm:flex-row sm:items-center">
+              <Plane className="h-4 w-4 mr-2" />
+              <span>Destino Único (Wizard)</span>
+            </div>
+          </TabsTrigger>
           <TabsTrigger value="single-destination">
-            {t('tripCreator.singleDestination', 'Destino Único')}
+            <div className="flex flex-col items-center sm:flex-row sm:items-center">
+              <Globe className="h-4 w-4 mr-2" />
+              <span>Destino Único (Formulário)</span>
+            </div>
           </TabsTrigger>
           <TabsTrigger value="multi-destination">
-            {t('tripCreator.multiDestination', 'Multi-Destino')}
+            <div className="flex flex-col items-center sm:flex-row sm:items-center">
+              <Map className="h-4 w-4 mr-2" />
+              <span>Multi-Destino</span>
+            </div>
           </TabsTrigger>
         </TabsList>
         
+        {/* Nova opção: Wizard de destino único */}
+        <TabsContent value="single-destination-wizard">
+          <SingleDestinationWizard 
+            onComplete={(completedData) => {
+              // Converter os dados do wizard para o formato esperado pela API
+              const processedData = {
+                name: completedData.name,
+                description: '',
+                destination: completedData.destination?.city || '',
+                country: completedData.destination?.country || '',
+                startDate: completedData.startDate,
+                endDate: completedData.endDate,
+                tripType: completedData.tripType || 'tourist',
+                travelers: completedData.travelers,
+                budget: completedData.budgetValue.toString(),
+                currency: completedData.currency,
+                isPublic: completedData.isPublic,
+                notes: '',
+                isMultiDestination: false,
+                interests: completedData.interests || [],
+                simulationResult: completedData.simulationResult
+              };
+              
+              // Executar a mutação de criação da viagem
+              tripMutation.mutate(processedData);
+            }}
+            initialData={isEditMode && formData ? {
+              name: formData.name,
+              destination: formData.destination && formData.country ? { 
+                city: formData.destination, 
+                country: formData.country 
+              } : null,
+              startDate: formData.startDate,
+              endDate: formData.endDate,
+              tripType: formData.tripType,
+              travelers: formData.travelers,
+              budgetValue: parseFloat(formData.budget || '0'),
+              currency: formData.currency,
+              isPublic: formData.isPublic
+            } : undefined}
+            isEditMode={isEditMode}
+          />
+        </TabsContent>
+        
+        {/* Formulário tradicional de destino único */}
         <TabsContent value="single-destination">
           <Card>
             <form onSubmit={handleSubmit}>
