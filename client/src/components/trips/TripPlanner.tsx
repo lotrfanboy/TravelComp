@@ -31,6 +31,7 @@ import {
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { TripPriceSummary } from './TripPriceSummary';
+import { BudgetPieChart } from './BudgetPieChart';
 
 // Categorias de pontos de interesse
 const interestCategories = [
@@ -432,30 +433,70 @@ export function TripPlanner() {
           
           {/* Resumo de custos */}
           {costSimulation && (
-            <TripPriceSummary
-              destination={formData.destination}
-              country={formData.destinationCountry}
-              startDate={formData.departureDate ? format(formData.departureDate, 'PPP', { locale: ptBR }) : ''}
-              endDate={formData.returnDate ? format(formData.returnDate, 'PPP', { locale: ptBR }) : ''}
-              priceItems={[
-                // Voos
-                ...costSimulation.flightOptions.slice(0, 1).map(flight => ({
-                  id: flight.id,
-                  name: `Voo de ida e volta - ${flight.airline}`,
-                  price: flight.price,
-                  currency: flight.currency,
-                  type: 'flight' as const
-                })),
-                // Hotéis
-                ...costSimulation.hotelOptions.slice(0, 1).map(hotel => ({
-                  id: hotel.id,
-                  name: `${hotel.name} (${formData.returnDate && formData.departureDate ? Math.ceil((formData.returnDate.getTime() - formData.departureDate.getTime()) / (1000 * 60 * 60 * 24)) : 0} noites)`,
-                  price: hotel.totalPrice,
-                  currency: hotel.currency,
-                  type: 'accommodation' as const
-                }))
-              ]}
-            />
+            <>
+              <TripPriceSummary
+                destination={formData.destination}
+                country={formData.destinationCountry}
+                startDate={formData.departureDate ? format(formData.departureDate, 'PPP', { locale: ptBR }) : ''}
+                endDate={formData.returnDate ? format(formData.returnDate, 'PPP', { locale: ptBR }) : ''}
+                priceItems={[
+                  // Voos
+                  ...costSimulation.flightOptions.slice(0, 1).map(flight => ({
+                    id: flight.id,
+                    name: `Voo de ida e volta - ${flight.airline}`,
+                    price: flight.price,
+                    currency: flight.currency,
+                    type: 'flight' as const
+                  })),
+                  // Hotéis
+                  ...costSimulation.hotelOptions.slice(0, 1).map(hotel => ({
+                    id: hotel.id,
+                    name: `${hotel.name} (${formData.returnDate && formData.departureDate ? Math.ceil((formData.returnDate.getTime() - formData.departureDate.getTime()) / (1000 * 60 * 60 * 24)) : 0} noites)`,
+                    price: hotel.totalPrice,
+                    currency: hotel.currency,
+                    type: 'accommodation' as const
+                  }))
+                ]}
+              />
+              
+              {/* Gráfico de orçamento */}
+              <div className="mt-6">
+                <BudgetPieChart 
+                  data={[
+                    {
+                      name: 'Transporte',
+                      value: costSimulation.flightOptions[0].price,
+                      color: '#4C6FFF', // azul
+                      hoverColor: '#3355DD',
+                      category: 'transportation'
+                    },
+                    {
+                      name: 'Hospedagem',
+                      value: costSimulation.hotelOptions[0].totalPrice || 0,
+                      color: '#FF6B6B', // vermelho
+                      hoverColor: '#DD5555',
+                      category: 'accommodation'
+                    },
+                    {
+                      name: 'Alimentação',
+                      value: Math.round((costSimulation.totalEstimate * 0.15)),
+                      color: '#FFD166', // amarelo
+                      hoverColor: '#DDBB55',
+                      category: 'food'
+                    },
+                    {
+                      name: 'Atrações',
+                      value: Math.round((costSimulation.totalEstimate * 0.10)),
+                      color: '#06D6A0', // verde
+                      hoverColor: '#05BB8A',
+                      category: 'activities'
+                    }
+                  ]}
+                  totalBudget={formData.budget}
+                  currency="BRL"
+                />
+              </div>
+            </>
           )}
         </div>
       </div>

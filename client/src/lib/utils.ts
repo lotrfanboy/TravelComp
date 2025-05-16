@@ -1,78 +1,73 @@
-import { ClassValue, clsx } from "clsx";
+import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+/**
+ * Combine multiple class names with tailwind support
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(date: Date | string, options: Intl.DateTimeFormatOptions = {}): string {
-  if (!date) return '';
+/**
+ * Format a number as currency
+ */
+export function formatCurrency(value: number, currency = 'BRL', 
+  options: Intl.NumberFormatOptions = {}): string {
   
-  const d = typeof date === 'string' ? new Date(date) : date;
+  // Set default locale based on currency
+  let locale = 'pt-BR';
+  if (currency === 'USD') locale = 'en-US';
+  if (currency === 'EUR') locale = 'de-DE';
   
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  };
-  
-  return new Intl.DateTimeFormat('pt-BR', { ...defaultOptions, ...options }).format(d);
-}
-
-export function formatDateRange(
-  startDate: Date | string, 
-  endDate: Date | string, 
-  options: Intl.DateTimeFormatOptions = {}
-): string {
-  return `${formatDate(startDate, options)} - ${formatDate(endDate, options)}`;
-}
-
-export function getDaysUntil(date: Date | string): number {
-  const now = new Date();
-  const targetDate = typeof date === 'string' ? new Date(date) : date;
-  
-  // Reset hours to compare only days
-  now.setHours(0, 0, 0, 0);
-  const target = new Date(targetDate);
-  target.setHours(0, 0, 0, 0);
-  
-  const diffTime = Math.abs(target.getTime() - now.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  return diffDays;
-}
-
-export function getTripDuration(startDate: Date | string, endDate: Date | string): number {
-  const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
-  const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
-  
-  // Reset hours to compare only days
-  const startDay = new Date(start);
-  startDay.setHours(0, 0, 0, 0);
-  
-  const endDay = new Date(end);
-  endDay.setHours(0, 0, 0, 0);
-  
-  const diffTime = Math.abs(endDay.getTime() - startDay.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  return diffDays;
-}
-
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
-  const formatter = new Intl.NumberFormat('pt-BR', {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: currency,
-  });
-  
-  return formatter.format(amount);
+    currency,
+    maximumFractionDigits: 0,
+    ...options
+  }).format(value);
 }
 
-export function getUserRoleDisplay(role: string): string {
-  const roleLabels: Record<string, string> = {
-    'tourist': 'Turista',
-    'nomad': 'Nômade Digital',
-    'business': 'Empresarial'
-  };
-  return roleLabels[role] || 'Usuário';
+/**
+ * Get a random integer between min and max
+ */
+export function getRandomInt(min: number, max: number): number {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Sleep for a specified amount of time
+ */
+export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Generate a UUID
+ */
+export function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+/**
+ * Add days to a date
+ */
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+/**
+ * Calculate days between two dates
+ */
+export function daysBetween(date1: Date, date2: Date): number {
+  const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+  const firstDate = new Date(date1);
+  const secondDate = new Date(date2);
+  
+  return Math.round(Math.abs((firstDate.getTime() - secondDate.getTime()) / oneDay));
 }

@@ -20,6 +20,7 @@ import {
   searchWorkspaces, 
   checkAvailability 
 } from "./booking-services";
+import { simulateTripCost } from "./trip-simulation";
 import { 
   tripValidationSchema, 
   workspaceValidationSchema, 
@@ -1217,242 +1218,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Trip cost simulation endpoint
   app.post('/api/trip/cost-simulation', isAuthenticated, async (req: any, res) => {
     try {
-      const { origin, destination, departureDate, returnDate, budget, interests } = req.body;
-      
-      // Validação básica dos dados de entrada
-      if (!origin || !destination || !departureDate || !returnDate) {
-        return res.status(400).json({ 
-          message: "Dados incompletos", 
-          error: "Origem, destino e datas são obrigatórios" 
-        });
-      }
-      
-      // Em uma implementação real, aqui faríamos chamadas para APIs externas
-      // como Skyscanner/Amadeus para voos e Booking.com para hotéis
-      
-      // Resposta simulada
-      const dateDiff = Math.ceil((new Date(returnDate).getTime() - new Date(departureDate).getTime()) / (86400000));
-      
-      // Simulação de preços de voos
-      const flightOptions = [
-        { 
-          id: crypto.randomUUID(),
-          airline: "LATAM", 
-          departureTime: "08:30", 
-          arrivalTime: "10:45", 
-          price: Math.round(1500 + Math.random() * 1000),
-          currency: "BRL"
-        },
-        { 
-          id: crypto.randomUUID(),
-          airline: "Azul", 
-          departureTime: "12:15", 
-          arrivalTime: "14:30", 
-          price: Math.round(1600 + Math.random() * 900),
-          currency: "BRL"
-        },
-        { 
-          id: crypto.randomUUID(),
-          airline: "GOL", 
-          departureTime: "15:45", 
-          arrivalTime: "18:10", 
-          price: Math.round(1400 + Math.random() * 800),
-          currency: "BRL"
-        }
-      ];
-      
-      // Simulação de opções de acomodação
-      const hotelOptions = [
-        {
-          id: crypto.randomUUID(),
-          name: "Hotel Central " + destination,
-          rating: 4.5,
-          pricePerNight: Math.round(300 + Math.random() * 200),
-          totalPrice: null, // será calculado abaixo
-          currency: "BRL",
-          amenities: ["WiFi", "Café da manhã", "Piscina"],
-          imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2080"
-        },
-        {
-          id: crypto.randomUUID(),
-          name: "Comfort Inn " + destination,
-          rating: 4.2,
-          pricePerNight: Math.round(250 + Math.random() * 150),
-          totalPrice: null,
-          currency: "BRL",
-          amenities: ["WiFi", "Café da manhã"],
-          imageUrl: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=2070"
-        },
-        {
-          id: crypto.randomUUID(),
-          name: "Grand Plaza " + destination,
-          rating: 4.8,
-          pricePerNight: Math.round(450 + Math.random() * 250),
-          totalPrice: null,
-          currency: "BRL",
-          amenities: ["WiFi", "Café da manhã", "Spa", "Academia", "Piscina"],
-          imageUrl: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=1780"
-        }
-      ];
-      
-      // Calcular preço total para cada hotel
-      hotelOptions.forEach(hotel => {
-        hotel.totalPrice = hotel.pricePerNight * dateDiff;
-      });
-      
-      // Categorias de interesse e atrações correspondentes
-      const interestCategories = {
-        culture: [
-          {
-            id: crypto.randomUUID(),
-            name: "Museu Nacional de " + destination,
-            category: "culture",
-            rating: 4.8,
-            price: Math.round(20 + Math.random() * 40),
-            currency: "BRL",
-            imageUrl: "https://images.unsplash.com/photo-1582034986517-30d163b1b9d2?q=80&w=1000"
-          },
-          {
-            id: crypto.randomUUID(),
-            name: "Centro Histórico",
-            category: "culture",
-            rating: 4.7,
-            price: 0,
-            currency: "BRL",
-            imageUrl: "https://images.unsplash.com/photo-1577334928618-2ff673b7f9f3?q=80&w=1000"
-          }
-        ],
-        nature: [
-          {
-            id: crypto.randomUUID(),
-            name: "Parque Municipal",
-            category: "nature",
-            rating: 4.7,
-            price: Math.round(5 + Math.random() * 15),
-            currency: "BRL",
-            imageUrl: "https://images.unsplash.com/photo-1605975766026-d5b2b1e5e8c8?q=80&w=1000"
-          },
-          {
-            id: crypto.randomUUID(),
-            name: "Jardim Botânico",
-            category: "nature",
-            rating: 4.6,
-            price: Math.round(10 + Math.random() * 20),
-            currency: "BRL",
-            imageUrl: "https://images.unsplash.com/photo-1592595896616-c37162298647?q=80&w=1000"
-          }
-        ],
-        nightlife: [
-          {
-            id: crypto.randomUUID(),
-            name: "Bar Tradicional",
-            category: "nightlife",
-            rating: 4.5,
-            price: null, // valor variável
-            currency: "BRL",
-            imageUrl: "https://images.unsplash.com/photo-1541873676-a18131494184?q=80&w=1000"
-          },
-          {
-            id: crypto.randomUUID(),
-            name: "Casa de Shows",
-            category: "nightlife",
-            rating: 4.4,
-            price: Math.round(50 + Math.random() * 100),
-            currency: "BRL",
-            imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1000"
-          }
-        ],
-        food: [
-          {
-            id: crypto.randomUUID(),
-            name: "Restaurante de Frutos do Mar",
-            category: "food",
-            rating: 4.9,
-            price: null, // valor variável por pessoa
-            currency: "BRL",
-            imageUrl: "https://images.unsplash.com/photo-1502364271109-0a9a75a2a9df?q=80&w=1000"
-          },
-          {
-            id: crypto.randomUUID(),
-            name: "Restaurante Tradicional Local",
-            category: "food",
-            rating: 4.7,
-            price: null,
-            currency: "BRL",
-            imageUrl: "https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1000"
-          }
-        ],
-        adventure: [
-          {
-            id: crypto.randomUUID(),
-            name: "Trilha Ecológica",
-            category: "adventure",
-            rating: 4.6,
-            price: Math.round(40 + Math.random() * 60),
-            currency: "BRL",
-            imageUrl: "https://images.unsplash.com/photo-1532339142463-fd0a8979791a?q=80&w=1000"
-          },
-          {
-            id: crypto.randomUUID(),
-            name: "Passeio de Barco",
-            category: "adventure",
-            rating: 4.5,
-            price: Math.round(80 + Math.random() * 120),
-            currency: "BRL",
-            imageUrl: "https://images.unsplash.com/photo-1548222606-aadefca5e188?q=80&w=1000"
-          }
-        ]
-      };
-      
-      // Filtrar atrações por categorias de interesse informadas
-      let attractions = [];
-      if (interests && interests.length > 0) {
-        interests.forEach(interest => {
-          if (interestCategories[interest]) {
-            attractions = [...attractions, ...interestCategories[interest]];
-          }
-        });
-      } else {
-        // Sem interesses específicos, pegamos algumas atrações populares de cada categoria
-        Object.values(interestCategories).forEach(categoryAttractions => {
-          attractions.push(categoryAttractions[0]);
-        });
-      }
-      
-      // Calcular estimativa total
-      const cheapestFlight = flightOptions.reduce((min, flight) => 
-        flight.price < min.price ? flight : min, flightOptions[0]);
-      
-      const cheapestHotel = hotelOptions.reduce((min, hotel) => 
-        hotel.totalPrice < min.totalPrice ? hotel : min, hotelOptions[0]);
-      
-      // Estimativa para atividades por dia (aproximadamente 2 por dia)
-      const activitiesEstimate = attractions
-        .filter(a => a.price !== null)
-        .slice(0, Math.min(dateDiff * 2, attractions.length))
-        .reduce((sum, attraction) => sum + (attraction.price || 0), 0);
-      
-      const totalEstimate = cheapestFlight.price + cheapestHotel.totalPrice + activitiesEstimate;
-      
-      // Retornar a resposta completa
-      res.json({
-        flightOptions,
-        hotelOptions,
-        attractions,
-        totalEstimate,
-        currency: "BRL",
-        dateDiff
-      });
-      
+      // Utilizamos a função simulateTripCost que implementamos
+      // para processar a requisição e gerar resultados dinâmicos
+      await simulateTripCost(req, res);
     } catch (error) {
       console.error("Erro ao simular custos de viagem:", error);
       res.status(500).json({ 
-        message: "Falha ao calcular custos da viagem", 
-        error: String(error)
+        message: "Erro ao processar simulação", 
+        error: String(error) 
       });
     }
   });
-
+  
+  // Só precisamos do servidor HTTP no final
   const httpServer = createServer(app);
   return httpServer;
 }

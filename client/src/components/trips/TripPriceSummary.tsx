@@ -1,115 +1,185 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
+import { BudgetPieChart } from './BudgetPieChart';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useQuery } from '@tanstack/react-query';
 
-// Tipos de itens de preço
-type PriceItemType = 'flight' | 'accommodation' | 'attraction' | 'workspace' | 'insurance' | 'other';
-
-// Interface para item de preço
-interface PriceItem {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  type: PriceItemType;
-  details?: string;
-}
-
-// Props do componente
-interface TripPriceSummaryProps {
+export interface TripPriceSummaryProps {
   destination: string;
   country: string;
-  startDate: string;
-  endDate: string;
-  priceItems: PriceItem[];
-  isMultiDestination?: boolean;
-  stickyToParent?: boolean;
+  startDate: Date | null;
+  endDate: Date | null;
+  budget?: number;
+  currency?: string;
 }
 
-export function TripPriceSummary({
-  destination,
-  country,
-  startDate,
-  endDate,
-  priceItems,
-  isMultiDestination = false,
-  stickyToParent = false,
+export function TripPriceSummary({ 
+  destination, 
+  country, 
+  startDate, 
+  endDate, 
+  budget,
+  currency = 'BRL' 
 }: TripPriceSummaryProps) {
-  const { t } = useTranslation();
-
-  // Calcular total
-  const total = priceItems && priceItems.length > 0 
-    ? priceItems.reduce((sum, item) => sum + item.price, 0)
-    : 0;
+  // Estado para controlar simulações
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Obter a moeda (usamos a do primeiro item ou BRL como padrão)
-  const currency = priceItems && priceItems.length > 0 ? priceItems[0].currency : 'BRL';
+  // Pega a simulação de custos da API
+  const { data: costSimulation, isLoading: isSimulationLoading } = useQuery({
+    queryKey: ['/api/trip/cost-simulation', { destination, country, startDate, endDate }],
+    queryFn: async () => {
+      if (!destination || !country || !startDate || !endDate) {
+        return null;
+      }
+      
+      try {
+        const response = await fetch('/api/trip/cost-simulation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            origin: 'São Paulo',
+            originCountry: 'Brasil',
+            destination,
+            destinationCountry: country,
+            departureDate: startDate.toISOString(),
+            returnDate: endDate.toISOString(),
+            budget: budget || 0,
+            interests: ['culture', 'food', 'adventure']
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Falha ao obter simulação de custos');
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Erro ao carregar simulação de preços:', error);
+        // Em caso de erro, retornamos dados simulados para não quebrar a UI
+        return {
+          flightOptions: [{ price: 1500 }, { price: 1700 }, { price: 1400 }],
+          hotelOptions: [{ totalPrice: 1200 }, { totalPrice: 1500 }, { totalPrice: 2000 }],
+          attractions: [
+            { price: 50 }, { price: 80 }, { price: 120 }, 
+            { price: 40 }, { price: 60 }, { price: 90 }
+          ],
+          totalEstimate: 3000,
+          currency: 'BRL'
+        };
+      }
+    },
+    enabled: !!(destination && country && startDate && endDate),
+    refetchOnWindowFocus: false
+  });
 
-  // Ícones para os diferentes tipos de itens
-  const getIconForItemType = (type: PriceItemType) => {
-    switch (type) {
-      case 'flight':
-        return '✈️';
-      case 'accommodation':
-        return '🏨';
-      case 'attraction':
-        return '🎭';
-      case 'workspace':
-        return '💻';
-      case 'insurance':
-        return '🛡️';
-      default:
-        return '📝';
+  // Dados para o gráfico
+  const [chartData, setChartData] = useState({
+    flightCost: 0,
+    accommodationCost: 0,
+    activitiesCost: 0,
+    total: 0
+  });
+
+  // Atualiza os dados do gráfico quando a simulação for carregada
+  useEffect(() => {
+    if (costSimulation) {
+      setIsLoading(false);
+      
+      // Encontrar o voo mais barato
+      const cheapestFlight = costSimulation.flightOptions?.reduce(
+        (min: any, flight: any) => flight.price < min.price ? flight : min, 
+        costSimulation.flightOptions[0]
+      ) || { price: 0 };
+      
+      // Encontrar o hotel mais barato
+      const cheapestHotel = costSimulation.hotelOptions?.reduce(
+        (min: any, hotel: any) => hotel.totalPrice < min.totalPrice ? hotel : min, 
+        costSimulation.hotelOptions[0]
+      ) || { totalPrice: 0 };
+      
+      // Calcular custo de atividades (até 2 por dia)
+      const activitiesCost = costSimulation.attractions
+        ?.filter((a: any) => a.price)
+        .slice(0, 6)
+        .reduce((sum: number, attr: any) => sum + (attr.price || 0), 0) || 0;
+      
+      // Atualizar dados para o gráfico
+      setChartData({
+        flightCost: cheapestFlight.price,
+        accommodationCost: cheapestHotel.totalPrice,
+        activitiesCost,
+        total: costSimulation.totalEstimate
+      });
     }
-  };
+  }, [costSimulation]);
 
   return (
-    <Card className={stickyToParent ? 'sticky top-6' : ''}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-xl">
-          {isMultiDestination 
-            ? t('tripPriceSummary.titleMulti', 'Resumo de custos de viagem')
-            : t('tripPriceSummary.title', 'Viagem para {{destination}}', { destination })}
-        </CardTitle>
-        <div className="text-sm text-muted-foreground">
-          {country && <p>{country}</p>}
-          {startDate && endDate && (
-            <p>
-              {startDate} - {endDate}
-            </p>
-          )}
-        </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Resumo de Custos Estimados</CardTitle>
+        <CardDescription>
+          Veja a distribuição prevista do seu orçamento para {destination}, {country}
+        </CardDescription>
       </CardHeader>
-      <CardContent className="pb-2">
-        <div className="space-y-1.5">
-          {priceItems && priceItems.length > 0 ? (
-            <>
-              {priceItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="mr-2">{getIconForItemType(item.type)}</span>
-                    <span className="text-sm font-medium">{item.name}</span>
-                  </div>
-                  <span>{formatCurrency(item.price, item.currency)}</span>
-                </div>
-              ))}
-              
-              <div className="pt-2 mt-2 border-t flex items-center justify-between font-semibold">
-                <span>{t('tripPriceSummary.total', 'Total')}</span>
-                <span>{formatCurrency(total, currency)}</span>
+      <CardContent>
+        {(isLoading || isSimulationLoading) ? (
+          <div className="space-y-4">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-[200px] w-full" />
+          </div>
+        ) : (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Custo Estimado Total</p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(chartData.total, currency)}
+                </p>
               </div>
-            </>
-          ) : (
-            <div className="py-4 text-center text-muted-foreground italic">
-              {t('tripPriceSummary.noItems', 'Nenhum item para mostrar')}
+              
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Economia Prevista</p>
+                <p className="text-lg font-medium text-green-600">
+                  {formatCurrency(budget ? budget - chartData.total : 0, currency)}
+                </p>
+              </div>
             </div>
-          )}
-        </div>
+            
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div>
+                <p className="text-sm text-muted-foreground">Passagens</p>
+                <p className="font-medium">{formatCurrency(chartData.flightCost, currency)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Hospedagem</p>
+                <p className="font-medium">{formatCurrency(chartData.accommodationCost, currency)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Atividades</p>
+                <p className="font-medium">{formatCurrency(chartData.activitiesCost, currency)}</p>
+              </div>
+            </div>
+            
+            <div className="mt-4">
+              <BudgetPieChart 
+                flightCost={chartData.flightCost}
+                accommodationCost={chartData.accommodationCost}
+                activitiesCost={chartData.activitiesCost}
+                currency={currency}
+                isInteractive={true}
+              />
+            </div>
+            
+            <p className="text-xs text-muted-foreground mt-4 text-center">
+              Estimativas baseadas nos preços mais baixos disponíveis. Os valores reais podem variar.
+            </p>
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="pt-1 text-xs text-muted-foreground">
-        <p>{t('tripPriceSummary.disclaimer', 'Valores estimados sujeitos a alterações')}</p>
-      </CardFooter>
     </Card>
   );
 }
