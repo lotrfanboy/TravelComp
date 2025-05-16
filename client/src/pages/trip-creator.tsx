@@ -176,7 +176,8 @@ export default function TripCreator() {
         });
       }
       
-      navigate(`/trips/${data.id}`);
+      // Redirecionar para a nova página de calculadora de viagem
+      navigate(`/trip-calculator/${data.id}`);
     },
     onError: (error: any) => {
       toast({

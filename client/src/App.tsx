@@ -11,6 +11,7 @@ import Dashboard from "@/pages/dashboard";
 import Trips from "@/pages/trips";
 import TripCreator from "@/pages/trip-creator";
 import TripDetail from "@/pages/TripDetail";
+import TripCalculator from "@/pages/trip-calculator";
 import Workspaces from "@/pages/workspaces";
 import Community from "@/pages/community";
 import Budget from "@/pages/budget";
@@ -95,6 +96,9 @@ function Router() {
       )} />
       <Route path="/planner" component={() => (
         <AuthProtectedRoute component={PlannerPage} pageTitle="Planejador de Viagem" />
+      )} />
+      <Route path="/trip-calculator/:id" component={() => (
+        <AuthProtectedRoute component={TripCalculator} pageTitle="Calculadora de Viagem" />
       )} />
       <Route path="/onboarding" component={OnboardingSimple} />
       <Route component={NotFound} />
