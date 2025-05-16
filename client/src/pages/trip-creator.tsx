@@ -84,8 +84,56 @@ export default function TripCreator() {
   const [destinations, setDestinations] = useState<any[]>([]);
   const [showPriceSummary, setShowPriceSummary] = useState(false);
   
-  // Mutação para criar viagem
-  const createTripMutation = useMutation({
+  // Efeito para carregar dados da viagem no modo de edição
+  useEffect(() => {
+    if (isEditMode && tripId) {
+      setIsLoading(true);
+      fetch(`/api/trips/${tripId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Falha ao carregar dados da viagem');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Preencher o formulário com os dados da viagem
+          setFormData({
+            name: data.name || '',
+            description: data.description || '',
+            destination: data.destination || '',
+            country: data.country || '',
+            startDate: data.startDate || '',
+            endDate: data.endDate || '',
+            tripType: data.tripType || user?.role || 'tourist',
+            travelers: data.travelers || 1,
+            budget: data.budget || '',
+            currency: data.currency || 'BRL',
+            isPublic: data.isPublic || false,
+            notes: data.notes || '',
+            isMultiDestination: data.isMultiDestination || false,
+          });
+          
+          // Definir a aba ativa com base no tipo de viagem
+          if (data.isMultiDestination) {
+            setActiveTab('multi-destination');
+          }
+          
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error('Erro ao carregar viagem:', error);
+          toast({
+            title: "Erro",
+            description: "Não foi possível carregar os dados da viagem.",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+        });
+    }
+  }, [isEditMode, tripId, user?.role]);
+
+  // Mutação para criar ou atualizar viagem
+  const tripMutation = useMutation({
     mutationFn: async (data: any) => {
       // Adicionar userId e outros campos necessários
       const payload = {
@@ -93,8 +141,11 @@ export default function TripCreator() {
         isMultiDestination: activeTab === 'multi-destination',
       };
       
-      const response = await fetch('/api/trips', {
-        method: 'POST',
+      const method = isEditMode ? 'PUT' : 'POST';
+      const url = isEditMode ? `/api/trips/${tripId}` : '/api/trips';
+      
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -103,24 +154,32 @@ export default function TripCreator() {
       
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Erro ao criar viagem');
+        throw new Error(error.message || (isEditMode ? 'Erro ao atualizar viagem' : 'Erro ao criar viagem'));
       }
       
       return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
-      toast({
-        title: t('tripCreator.success', 'Viagem criada com sucesso'),
-        description: t('tripCreator.successDesc', 'Sua viagem foi criada e está pronta para ser planejada'),
-      });
+      
+      if (isEditMode) {
+        toast({
+          title: 'Viagem atualizada com sucesso',
+          description: 'As alterações na sua viagem foram salvas',
+        });
+      } else {
+        toast({
+          title: t('tripCreator.success', 'Viagem criada com sucesso'),
+          description: t('tripCreator.successDesc', 'Sua viagem foi criada e está pronta para ser planejada'),
+        });
+      }
       
       navigate(`/trips/${data.id}`);
     },
     onError: (error: any) => {
       toast({
-        title: t('tripCreator.error', 'Erro ao criar viagem'),
-        description: error.message || t('tripCreator.errorDesc', 'Ocorreu um erro ao criar sua viagem. Tente novamente.'),
+        title: isEditMode ? 'Erro ao atualizar viagem' : t('tripCreator.error', 'Erro ao criar viagem'),
+        description: error.message || (isEditMode ? 'Ocorreu um erro ao atualizar sua viagem. Tente novamente.' : t('tripCreator.errorDesc', 'Ocorreu um erro ao criar sua viagem. Tente novamente.')),
         variant: 'destructive',
       });
     },
