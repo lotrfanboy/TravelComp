@@ -2,6 +2,13 @@
  * Serviço centralizado para interações com a API
  */
 import { queryClient } from '@/lib/queryClient';
+import { 
+  Trip, 
+  CreateTripPayload, 
+  UpdateTripPayload, 
+  SimulationRequestPayload, 
+  SimulationResults 
+} from '@/types/trip.types';
 
 interface ApiOptions {
   headers?: Record<string, string>;
@@ -148,12 +155,13 @@ export const invalidateQuery = (queryKey: string | unknown[]) => {
 
 // API Services específicos para cada recurso
 export const TripService = {
-  getTrips: () => fetchData('/api/trips'),
-  getTrip: (id: number) => fetchData(`/api/trips/${id}`),
-  createTrip: (data: any) => postData('/api/trips', data),
-  updateTrip: (id: number, data: any) => patchData(`/api/trips/${id}`, data),
-  deleteTrip: (id: number) => deleteData(`/api/trips/${id}`),
-  simulateTripCost: (data: any) => postData('/api/trip/cost-simulation', data),
+  getTrips: () => fetchData<Trip[]>('/api/trips'),
+  getTrip: (id: number) => fetchData<Trip>(`/api/trips/${id}`),
+  createTrip: (data: CreateTripPayload) => postData<CreateTripPayload, Trip>('/api/trips', data),
+  updateTrip: (id: number, data: UpdateTripPayload) => patchData<UpdateTripPayload, Trip>(`/api/trips/${id}`, data),
+  deleteTrip: (id: number) => deleteData<void>(`/api/trips/${id}`),
+  simulateTripCost: (data: SimulationRequestPayload) => 
+    postData<SimulationRequestPayload, SimulationResults>('/api/trip/cost-simulation', data),
 };
 
 export const AccommodationService = {

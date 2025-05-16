@@ -10,66 +10,7 @@ import { formatCurrency, formatDate } from '@/utils';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { TripService, invalidateQuery } from '@/services/api.service';
-
-// Interface para a viagem
-interface Trip {
-  id: number;
-  name: string;
-  userId: string;
-  origin: string;
-  destination: string;
-  country: string;
-  startDate: string;
-  endDate: string;
-  budget: string | null;
-  currency: string | null;
-  travelers: number;
-  status: string | null;
-  simulationResult: SimulationResults | null;
-  selectedFlightId: string | null;
-  selectedHotelId: string | null;
-  isMultiDestination: boolean | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-}
-
-// Interface para os resultados da simulação
-interface SimulationResults {
-  flightOptions: Array<{
-    id: string;
-    airline: string;
-    departureTime: string;
-    arrivalTime: string;
-    price: number;
-    currency: string;
-    duration?: string;
-    stops?: number;
-    flightNumber?: string;
-  }>;
-  hotelOptions: Array<{
-    id: string;
-    name: string;
-    rating: number;
-    pricePerNight: number;
-    totalPrice: number;
-    currency: string;
-    amenities: string[];
-    address?: string;
-    imageUrl?: string;
-  }>;
-  attractions: Array<{
-    id: string;
-    name: string;
-    category: string;
-    rating: number;
-    price?: number;
-    currency?: string;
-    imageUrl: string;
-    description?: string;
-  }>;
-  totalEstimate: number;
-  currency: string;
-}
+import { Trip, SimulationResults, UpdateTripPayload } from '@/types/trip.types';
 
 export default function TripCalculator() {
   const { t } = useTranslation();
@@ -83,7 +24,7 @@ export default function TripCalculator() {
   
   // Mutação para atualizar a viagem com as seleções
   const { mutate: updateTripSelections, isPending: isUpdating } = useMutation({
-    mutationFn: async (data: { selectedFlightId: string; selectedHotelId: string }) => {
+    mutationFn: async (data: UpdateTripPayload) => {
       if (!tripId) throw new Error('ID da viagem não encontrado');
       return TripService.updateTrip(tripId, data);
     },
@@ -108,10 +49,10 @@ export default function TripCalculator() {
   });
   
   // Buscar dados da viagem usando o serviço centralizado
-  const { data: trip, isLoading: isLoadingTrip } = useQuery({
+  const { data: trip, isLoading: isLoadingTrip } = useQuery<Trip>({
     queryKey: [`/api/trips/${tripId}`],
     queryFn: async () => {
-      if (!tripId) return null;
+      if (!tripId) throw new Error('ID da viagem não encontrado');
       return TripService.getTrip(tripId);
     },
     enabled: !!tripId,
