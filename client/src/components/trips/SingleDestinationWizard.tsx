@@ -176,20 +176,20 @@ const SingleDestinationWizard: React.FC<SingleDestinationWizardProps> = ({
   const calculateTripCost = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/trip-simulation', {
+      const response = await fetch('/api/trip/cost-simulation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          origin: formData.origin,
-          destination: formData.destination,
+          origin: formData.origin || 'São Paulo',
+          originCountry: 'Brasil',
+          destination: typeof formData.destination === 'object' ? formData.destination.city : formData.destination,
+          destinationCountry: typeof formData.destination === 'object' ? formData.destination.country : 'Brasil',
           departureDate: formData.startDate,
           returnDate: formData.endDate,
-          travelers: formData.travelers,
-          budgetScale: formData.budgetScale,
-          interests: formData.interests,
-          isPublic: formData.isPublic
+          budget: formData.budgetValue || 0,
+          interests: formData.interests
         }),
       });
       
@@ -198,13 +198,24 @@ const SingleDestinationWizard: React.FC<SingleDestinationWizardProps> = ({
       }
       
       const result = await response.json();
+      console.log("Resultado da simulação:", result);
       setSimulationResult(result);
       
       // Se a simulação foi bem-sucedida, preparamos os dados para a criação da viagem
-      onComplete({
-        ...formData,
-        simulationResult: result
-      });
+      // e avançamos para a etapa final
+      setStep(5);
+      
+      // Definir o valor do orçamento com base na simulação
+      if (result && result.totalEstimate) {
+        const newBudgetValue = Math.ceil(result.totalEstimate * 1.1); // 10% acima da estimativa
+        setFormData(prev => ({
+          ...prev,
+          budgetValue: newBudgetValue
+        }));
+      }
+      
+      // Armazenar a simulação para uso posterior
+      setSimulationResult(result);
     } catch (error) {
       console.error('Erro na simulação:', error);
       toast({
