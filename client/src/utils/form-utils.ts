@@ -1,157 +1,165 @@
 /**
  * Utilitários para manipulação de formulários
  */
-import { z } from 'zod';
-import { useState, useEffect } from 'react';
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { FieldValues, UseFormReturn } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 /**
- * Mensagens de erro traduzidas para validação de formulários
+ * Cria um validador para formulários com mensagens de erro em português
+ * @param schema Schema zod para validação
+ * @returns Resolver para usar com useForm
  */
-export const zodErrorMessages = {
-  required: "Este campo é obrigatório",
-  email: "Email inválido",
-  min: (min: number) => `Deve ter pelo menos ${min} caracteres`,
-  max: (max: number) => `Deve ter no máximo ${max} caracteres`,
-  minDate: "A data não pode ser anterior a hoje",
-  invalid: "Valor inválido",
+export const createFormResolver = <T extends z.ZodType>(schema: T) => {
+  return zodResolver(schema);
 };
 
 /**
- * Funções auxiliares para criar validações Zod 
+ * Função helper para mapear erros de formulário em um formato mais amigável
+ * @param form Objeto do formulário retornado pelo useForm
+ * @returns Objeto com chaves de campo e mensagens de erro
  */
-export const zodValidations = {
-  /**
-   * Campo de texto obrigatório com validações de comprimento
-   */
-  requiredString: (options?: { min?: number; max?: number }) => {
-    let schema = z.string().min(1, zodErrorMessages.required);
-    
-    if (options?.min) {
-      schema = schema.min(options.min, zodErrorMessages.min(options.min));
-    }
-    
-    if (options?.max) {
-      schema = schema.max(options.max, zodErrorMessages.max(options.max));
-    }
-    
-    return schema;
-  },
+export const getFormErrors = <T extends FieldValues>(
+  form: UseFormReturn<T>
+): Record<string, string> => {
+  const result: Record<string, string> = {};
   
-  /**
-   * Campo de email com validação
-   */
-  email: () => {
-    return z.string().email(zodErrorMessages.email);
-  },
+  const { errors } = form.formState;
   
-  /**
-   * Data com validação de data mínima
-   */
-  date: (options?: { minDate?: Date }) => {
-    let schema = z.string().refine(val => {
-      const date = new Date(val);
-      return !isNaN(date.getTime());
-    }, { message: zodErrorMessages.invalid });
-    
-    if (options?.minDate) {
-      schema = schema.refine(val => {
-        const date = new Date(val);
-        return date >= options.minDate!;
-      }, { message: zodErrorMessages.minDate });
+  Object.keys(errors).forEach((field) => {
+    if (errors[field]?.message) {
+      result[field] = errors[field]?.message as string;
     }
-    
-    return schema;
-  },
+  });
   
-  /**
-   * Número com validações
-   */
-  number: (options?: { min?: number; max?: number }) => {
-    let schema = z.number();
-    
-    if (options?.min !== undefined) {
-      schema = schema.min(options.min);
-    }
-    
-    if (options?.max !== undefined) {
-      schema = schema.max(options.max);
-    }
-    
-    return schema;
-  },
+  return result;
 };
 
 /**
- * Hook personalizado para gerenciar o estado de um formulário de pesquisa com debounce
- * @param initialValues Valores iniciais do formulário
- * @param delay Tempo de delay para o debounce em milissegundos
- * @returns Estado e manipuladores do formulário
+ * Hook para obter regras de validação comuns com mensagens traduzidas
  */
-export function useSearchForm<T extends Record<string, any>>(
-  initialValues: T,
-  delay: number = 500
-) {
-  const [values, setValues] = useState<T>(initialValues);
-  const [debouncedValues, setDebouncedValues] = useState<T>(initialValues);
-  const [isDebouncing, setIsDebouncing] = useState(false);
-
-  // Atualiza os valores com debounce
-  useEffect(() => {
-    setIsDebouncing(true);
-    const timer = setTimeout(() => {
-      setDebouncedValues(values);
-      setIsDebouncing(false);
-    }, delay);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [values, delay]);
-
-  // Manipulador de mudança de campo
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target;
-    
-    let newValue: any = value;
-    
-    // Converte valor para checkbox
-    if (type === 'checkbox' && 'checked' in e.target) {
-      newValue = (e.target as HTMLInputElement).checked;
-    }
-    
-    // Converte valor para número
-    if (type === 'number') {
-      newValue = value === '' ? '' : Number(value);
-    }
-    
-    setValues((prev) => ({
-      ...prev,
-      [name]: newValue,
-    }));
-  };
-
-  // Manipulador para alteração programática
-  const setValue = (name: keyof T, value: any) => {
-    setValues((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // Função para redefinir o formulário
-  const reset = () => {
-    setValues(initialValues);
-    setDebouncedValues(initialValues);
-  };
-
+export const useValidationRules = () => {
+  const { t } = useTranslation();
+  
   return {
-    values,
-    debouncedValues,
-    isDebouncing,
-    handleChange,
-    setValue,
-    reset,
+    /**
+     * Regra para campos obrigatórios
+     * @param fieldName Nome do campo (opcional)
+     * @returns Validação required
+     */
+    required: (fieldName?: string) => {
+      const message = fieldName 
+        ? t("O campo {{field}} é obrigatório", { field: fieldName })
+        : t("Este campo é obrigatório");
+        
+      return {
+        required: {
+          value: true, 
+          message
+        }
+      };
+    },
+    
+    /**
+     * Regra para validação de email
+     * @returns Validação de email
+     */
+    email: () => ({
+      pattern: {
+        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        message: t("Email inválido")
+      }
+    }),
+    
+    /**
+     * Regra para comprimento mínimo
+     * @param length Comprimento mínimo
+     * @param fieldName Nome do campo (opcional)
+     * @returns Validação de minLength
+     */
+    minLength: (length: number, fieldName?: string) => {
+      const message = fieldName 
+        ? t("{{field}} deve ter pelo menos {{length}} caracteres", { field: fieldName, length })
+        : t("Este campo deve ter pelo menos {{length}} caracteres", { length });
+        
+      return {
+        minLength: {
+          value: length,
+          message
+        }
+      };
+    },
+    
+    /**
+     * Regra para valor mínimo
+     * @param min Valor mínimo
+     * @returns Validação de min
+     */
+    min: (min: number) => ({
+      min: {
+        value: min,
+        message: t("O valor deve ser maior ou igual a {{min}}", { min })
+      }
+    }),
+    
+    /**
+     * Regra para valor máximo
+     * @param max Valor máximo
+     * @returns Validação de max
+     */
+    max: (max: number) => ({
+      max: {
+        value: max,
+        message: t("O valor deve ser menor ou igual a {{max}}", { max })
+      }
+    })
   };
-}
+};
+
+/**
+ * Cria um schema Zod para validação de datas
+ * @param errorMessage Mensagem de erro customizada
+ * @returns Schema de validação Zod para datas
+ */
+export const createDateSchema = (errorMessage?: string) => {
+  return z.string()
+    .refine((value) => {
+      const date = new Date(value);
+      return !isNaN(date.getTime());
+    }, {
+      message: errorMessage || "Data inválida"
+    });
+};
+
+/**
+ * Regra para validação de datas no passado
+ * @param fieldName Nome do campo para mensagem de erro
+ * @returns Validação para datas no passado
+ */
+export const dateNotInPast = (fieldName?: string) => {
+  return (value: string) => {
+    const date = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const isValid = !isNaN(date.getTime()) && date >= today;
+    
+    return isValid || (fieldName 
+      ? `${fieldName} não pode ser uma data no passado`
+      : "A data não pode ser no passado");
+  };
+};
+
+/**
+ * Função para criar schema Zod para validação de moeda
+ * @param errorMessage Mensagem de erro personalizada
+ * @returns Schema Zod para validação de moeda
+ */
+export const createCurrencySchema = (errorMessage?: string) => {
+  return z.string()
+    .transform((val) => val.replace(/[^\d.,]/g, "").replace(",", "."))
+    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, {
+      message: errorMessage || "Valor monetário inválido"
+    });
+};
