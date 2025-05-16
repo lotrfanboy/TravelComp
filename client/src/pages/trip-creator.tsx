@@ -327,7 +327,10 @@ export default function TripCreator() {
                 notes: '',
                 isMultiDestination: false,
                 interests: completedData.interests || [],
-                simulationResult: completedData.simulationResult
+                // Adicionar os resultados da simulação para salvar no banco
+                simulationResult: completedData.simulationResult,
+                // Definir status como criado com o wizard
+                status: 'created'
               };
               
               // Executar a mutação de criação da viagem

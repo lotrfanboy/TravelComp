@@ -91,6 +91,11 @@ export const trips = pgTable("trips", {
   sharedWithUserIds: varchar("shared_with_user_ids", { length: 255 }),
   itineraryTemplate: varchar("itinerary_template", { length: 50 }),
   paymentStatus: varchar("payment_status", { length: 20 }).default("pending"),
+  // Campos para guardar detalhes de seleções de voo, hotel e resultados da simulação
+  simulationResult: jsonb("simulation_result"),
+  selectedFlightId: varchar("selected_flight_id", { length: 100 }),
+  selectedHotelId: varchar("selected_hotel_id", { length: 100 }),
+  status: varchar("status", { length: 20 }).default("draft"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
