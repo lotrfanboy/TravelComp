@@ -149,68 +149,121 @@ async function seedDatabase() {
     });
     
     console.log('Criando espaços de trabalho...');
-    await db.insert(schema.workspaces).values([
-      {
-        name: 'WeWork Paulista',
-        address: 'Av. Paulista, 1000',
-        city: 'São Paulo',
-        country: 'Brasil',
-        type: 'coworking',
-        wifiSpeed: 200,
-        price: 50,
-        currency: 'BRL',
-        amenities: JSON.stringify(['Wi-Fi de alta velocidade', 'Salas de reunião', 'Café grátis', 'Impressora']),
-        rating: 4.6,
-        imageUrl: 'https://example.com/wework-paulista.jpg',
-        website: 'https://wework.com/sao-paulo'
-      },
-      {
-        name: 'Selina Medellin',
-        address: 'Calle 10 #41-66',
-        city: 'Medellín',
-        country: 'Colômbia',
-        type: 'coworking',
-        wifiSpeed: 150,
-        price: 30,
-        currency: 'USD',
-        amenities: JSON.stringify(['Wi-Fi', 'Café', 'Área externa', 'Eventos']),
-        rating: 4.8,
-        imageUrl: 'https://example.com/selina-medellin.jpg',
-        website: 'https://selina.com/colombia/medellin'
-      }
-    ]);
+    // Inserir um workspace por vez para evitar erros de tipagem
+    await db.insert(schema.workspaces).values({
+      name: 'WeWork Paulista',
+      address: 'Av. Paulista, 1000',
+      city: 'São Paulo',
+      country: 'Brasil',
+      type: 'coworking',
+      wifiSpeed: 200,
+      price: 50,
+      currency: 'BRL',
+      amenities: JSON.stringify(['Wi-Fi de alta velocidade', 'Salas de reunião', 'Café grátis', 'Impressora']),
+      rating: 4.6,
+      imageUrl: 'https://example.com/wework-paulista.jpg',
+      website: 'https://wework.com/sao-paulo'
+    });
+    
+    await db.insert(schema.workspaces).values({
+      name: 'Selina Medellin',
+      address: 'Calle 10 #41-66',
+      city: 'Medellín',
+      country: 'Colômbia',
+      type: 'coworking',
+      wifiSpeed: 150,
+      price: 30,
+      currency: 'USD',
+      amenities: JSON.stringify(['Wi-Fi', 'Café', 'Área externa', 'Eventos']),
+      rating: 4.8,
+      imageUrl: 'https://example.com/selina-medellin.jpg',
+      website: 'https://selina.com/colombia/medellin'
+    });
     
     // Criar algumas viagens de exemplo
     console.log('Criando viagens de exemplo...');
     
-    // Viagem para o turista
-    const [tripTourist] = await db.insert(schema.trips).values({
-      name: 'Férias no Rio',
-      userId: tourist.id,
-      startDate: new Date('2025-07-15'),
-      endDate: new Date('2025-07-22'),
-      destination: 'Rio de Janeiro',
-      country: 'Brasil',
-      tripType: schema.TripType.LEISURE,
-      budget: 5000,
-      currency: 'BRL',
-      status: 'planned'
-    }).returning();
-    
-    // Viagem para o nômade
-    const [tripNomad] = await db.insert(schema.trips).values({
-      name: 'Temporada em São Paulo',
-      userId: nomad.id,
-      startDate: new Date('2025-08-01'),
-      endDate: new Date('2025-09-30'),
-      destination: 'São Paulo',
-      country: 'Brasil',
-      isMultiDestination: false,
-      tripType: schema.TripType.WORK,
-      budget: 8000,
-      currency: 'BRL',
-      status: 'planning'
-    }).returning();
+    try {
+      // Viagem para o turista
+      const touristTripData = {
+        name: 'Férias no Rio',
+        userId: tourist.id,
+        startDate: new Date('2025-07-15'),
+        endDate: new Date('2025-07-22'),
+        destination: 'Rio de Janeiro',
+        country: 'Brasil',
+        tripType: schema.TripType.LEISURE,
+        budget: '5000', // Convertido para string para compatibilidade
+        currency: 'BRL',
+        status: 'planned',
+        travelers: 2
+      };
+      
+      const queryTourist = `
+        INSERT INTO trips (name, user_id, start_date, end_date, destination, country, trip_type, budget, currency, status, travelers)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING *
+      `;
+      
+      const touristTripResult = await db.execute(queryTourist, [
+        touristTripData.name,
+        touristTripData.userId,
+        touristTripData.startDate,
+        touristTripData.endDate,
+        touristTripData.destination,
+        touristTripData.country,
+        touristTripData.tripType,
+        touristTripData.budget,
+        touristTripData.currency,
+        touristTripData.status,
+        touristTripData.travelers
+      ]);
+      
+      const tripTourist = touristTripResult.rows[0];
+      console.log(`Viagem para turista criada com ID: ${tripTourist.id}`);
+      
+      // Viagem para o nômade
+      const nomadTripData = {
+        name: 'Temporada em São Paulo',
+        userId: nomad.id,
+        startDate: new Date('2025-08-01'),
+        endDate: new Date('2025-09-30'),
+        destination: 'São Paulo',
+        country: 'Brasil',
+        isMultiDestination: false,
+        tripType: schema.TripType.WORK,
+        budget: '8000', // Convertido para string para compatibilidade
+        currency: 'BRL',
+        status: 'planning',
+        travelers: 1
+      };
+      
+      const queryNomad = `
+        INSERT INTO trips (name, user_id, start_date, end_date, destination, country, is_multi_destination, trip_type, budget, currency, status, travelers)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING *
+      `;
+      
+      const nomadTripResult = await db.execute(queryNomad, [
+        nomadTripData.name,
+        nomadTripData.userId,
+        nomadTripData.startDate,
+        nomadTripData.endDate,
+        nomadTripData.destination,
+        nomadTripData.country,
+        nomadTripData.isMultiDestination,
+        nomadTripData.tripType,
+        nomadTripData.budget,
+        nomadTripData.currency,
+        nomadTripData.status,
+        nomadTripData.travelers
+      ]);
+      
+      const tripNomad = nomadTripResult.rows[0];
+      console.log(`Viagem para nômade criada com ID: ${tripNomad.id}`);
+    } catch (error) {
+      console.error('Erro ao criar viagens:', error);
+    }
     
     console.log('Dados iniciais gerados com sucesso!');
     
